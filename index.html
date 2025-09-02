@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Tracker App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .body-bg {
+            background-image: linear-gradient(135deg, #1f2937 0%, #0c0e12 100%);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+        }
+        .body-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(17, 24, 39, 0.85); /* Dark overlay */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center p-4 md:p-8 body-bg">
+
+    <div id="loader" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-red-500"></div>
+    </div>
+
+    <div id="app-container" class="container mx-auto w-full max-w-4xl relative z-10">
+        <h1 class="text-4xl md:text-5xl font-bold text-center text-red-500 mb-2 drop-shadow-lg">My Gym Log</h1>
+        <p class="text-center text-lg md:text-xl text-gray-400 mb-8">Traccia i tuoi allenamenti e monitora i progressi</p>
+        
+        <div id="auth-status" class="text-center text-sm mb-4 text-gray-500"></div>
+
+        <!-- Home View -->
+        <div id="home-view" class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-[1.01] border-t-2 border-red-600/30">
+            <h2 class="text-2xl font-semibold mb-2 text-gray-200 text-center">Benvenuto!</h2>
+            <div id="daily-quote" class="text-center text-gray-400 mb-6"></div>
+            <div class="space-y-4">
+                <button id="home-start-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                    Inizia un nuovo allenamento
+                </button>
+                <button id="home-history-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                    Visualizza cronologia
+                </button>
+            </div>
+        </div>
+
+        <!-- Workout View -->
+        <div id="workout-view" class="hidden bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl border-t-2 border-red-600/30">
+            <button id="workout-back-btn" class="mb-6 text-gray-400 hover:text-gray-200 transition-colors">&larr; Torna alla Home</button>
+            <div id="session-summary" class="mb-6 border-b border-gray-700 pb-4">
+                <h2 class="text-2xl font-semibold text-gray-200">Sessione attuale</h2>
+                <p id="session-info" class="text-sm text-gray-400 mt-2"></p>
+            </div>
+            
+            <div id="exercise-form-container">
+                <h3 class="text-xl font-semibold mb-4 text-gray-200">Aggiungi un esercizio</h3>
+                <form id="exercise-form" class="space-y-4">
+                    <div>
+                        <label for="muscleGroup" class="block text-sm font-medium text-gray-400">Gruppo Muscolare</label>
+                        <select id="muscleGroup" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 transition-colors" required>
+                            <option value="">Seleziona...</option>
+                            <option value="Petto">Petto</option>
+                            <option value="Schiena">Schiena</option>
+                            <option value="Gambe">Gambe</option>
+                            <option value="Spalle">Spalle</option>
+                            <option value="Braccia">Braccia</option>
+                            <option value="Addome">Addome</option>
+                            <option value="Cardio">Cardio</option>
+                            <option value="Corpo intero">Corpo intero</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="exerciseSelect" class="block text-sm font-medium text-gray-400">Esercizio</label>
+                        <select id="exerciseSelect" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 transition-colors" required>
+                            <option value="">Seleziona...</option>
+                        </select>
+                        <input type="text" id="newExerciseInput" class="hidden mt-2 w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500" placeholder="Nuovo esercizio" required>
+                    </div>
+
+                    <div id="sets-container" class="space-y-2 p-4 border border-gray-700 rounded-lg">
+                        <h4 class="text-md font-semibold text-gray-200 mb-2">Serie</h4>
+                        <div class="flex items-center space-x-2">
+                            <input type="number" step="0.5" id="weight" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Peso" required>
+                            <input type="number" id="reps" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Ripetizioni" required>
+                            <button type="button" id="add-set-btn" class="w-1/3 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-md transition transform hover:scale-105">Aggiungi Serie</button>
+                        </div>
+                        <ul id="sets-list" class="space-y-2 text-sm text-gray-300"></ul>
+                    </div>
+                    
+                    <div>
+                        <label for="volume" class="block text-sm font-medium text-gray-400">Volume Totale (kg)</label>
+                        <input type="text" id="volume" readonly class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none text-gray-100">
+                    </div>
+
+                    <div>
+                        <label for="notes" class="block text-sm font-medium text-gray-400">Note (Opzionale)</label>
+                        <textarea id="notes" rows="2" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500" placeholder="Sentito il petto lavorare bene"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                        Aggiungi Esercizio
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- History View -->
+        <div id="history-view" class="hidden bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl border-t-2 border-red-600/30">
+            <button id="history-back-btn" class="mb-6 text-gray-400 hover:text-gray-200 transition-colors">&larr; Torna alla Home</button>
+            <h2 class="text-2xl font-semibold mb-6 text-gray-200">Cronologia Allenamenti</h2>
+            <div id="session-history" class="space-y-6">
+                <!-- La cronologia delle sessioni verrà caricata qui -->
+            </div>
+            <div id="no-history" class="hidden text-center text-gray-500 mt-4">Nessun allenamento registrato. Inizia ad aggiungerne uno!</div>
+        </div>
+        
+        <!-- Modale per i messaggi -->
+        <div id="message-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-gray-900 bg-opacity-75">
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-xl max-w-sm w-full border-t-2 border-red-600/30">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 id="modal-title" class="text-xl font-semibold text-gray-100"></h3>
+                    <button id="close-message-modal" class="text-gray-400 hover:text-gray-100">&times;</button>
+                </div>
+                <p id="modal-message" class="text-gray-300"></p>
+            </div>
+        </div>
+
+        <!-- Modale per visualizzare gli esercizi di una sessione -->
+        <div id="exercises-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-gray-900 bg-opacity-75">
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-xl max-w-lg w-full border-t-2 border-red-600/30">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 id="modal-session-title" class="text-xl font-semibold text-gray-100">Dettagli Sessione</h3>
+                    <button id="close-exercises-modal" class="text-gray-400 hover:text-gray-100">&times;</button>
+                </div>
+                <div id="exercises-content">
+                    <button id="add-exercise-to-past-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl shadow-md mb-4 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                        Aggiungi Esercizio
+                    </button>
+                    <div id="exercises-list" class="space-y-4">
+                        <!-- Gli esercizi verranno caricati qui -->
+                    </div>
+                    <div id="add-exercise-to-past-form-container" class="hidden mt-4">
+                        <button id="back-to-exercises-btn" class="mb-4 text-gray-400 hover:text-gray-200 transition-colors">&larr; Torna agli esercizi</button>
+                        <h4 class="text-lg font-semibold mb-4 text-gray-200">Aggiungi un nuovo esercizio</h4>
+                        <form id="add-exercise-to-past-form" class="space-y-4">
+                            <input type="hidden" id="past-session-id">
+                            <div>
+                                <label for="past-muscleGroup" class="block text-sm font-medium text-gray-400">Gruppo Muscolare</label>
+                                <select id="past-muscleGroup" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100" required>
+                                    <option value="">Seleziona...</option>
+                                    <option value="Petto">Petto</option>
+                                    <option value="Schiena">Schiena</option>
+                                    <option value="Gambe">Gambe</option>
+                                    <option value="Spalle">Spalle</option>
+                                    <option value="Braccia">Braccia</option>
+                                    <option value="Addome">Addome</option>
+                                    <option value="Cardio">Cardio</option>
+                                    <option value="Corpo intero">Corpo intero</option>
+                        </select>
+                            </div>
+                            <div>
+                                <label for="past-exerciseSelect" class="block text-sm font-medium text-gray-400">Esercizio</label>
+                                <select id="past-exerciseSelect" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100" required>
+                                    <option value="">Seleziona...</option>
+                                </select>
+                                <input type="text" id="past-newExerciseInput" class="hidden mt-2 w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500" placeholder="Nuovo esercizio" required>
+                            </div>
+                             <div id="past-sets-container" class="space-y-2 p-4 border border-gray-700 rounded-lg">
+                                <h4 class="text-md font-semibold text-gray-200 mb-2">Serie</h4>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" step="0.5" id="past-weight" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Peso" required>
+                                    <input type="number" id="past-reps" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Ripetizioni" required>
+                                    <button type="button" id="past-add-set-btn" class="w-1/3 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-md transition transform hover:scale-105">Aggiungi Serie</button>
+                                </div>
+                                <ul id="past-sets-list" class="space-y-2 text-sm text-gray-300"></ul>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <label for="past-volume" class="block text-sm font-medium text-gray-400">Volume di Allenamento (kg)</label>
+                                <input type="text" id="past-volume" readonly class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none text-gray-100">
+                            </div>
+                            <div>
+                                <label for="past-notes" class="block text-sm font-medium text-gray-400">Note (Opzionale)</label>
+                                <textarea id="past-notes" rows="2" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                                Aggiungi Esercizio a questa Sessione
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modale per la modifica di un esercizio -->
+        <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-gray-900 bg-opacity-75">
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-xl max-w-lg w-full border-t-2 border-red-600/30">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-xl font-semibold text-gray-100">Modifica Esercizio</h3>
+                    <button id="close-edit-modal" class="text-gray-400 hover:text-gray-100">&times;</button>
+                </div>
+                <form id="edit-workout-form" class="space-y-4">
+                    <input type="hidden" id="edit-session-id">
+                    <input type="hidden" id="edit-exercise-id">
+                    <div>
+                        <label for="edit-exercise" class="block text-sm font-medium text-gray-400">Esercizio</label>
+                        <input type="text" id="edit-exercise" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500" required>
+                    </div>
+
+                    <div id="edit-sets-container" class="space-y-2 p-4 border border-gray-700 rounded-lg">
+                        <h4 class="text-md font-semibold text-gray-200 mb-2">Serie</h4>
+                        <div class="flex items-center space-x-2">
+                            <input type="number" step="0.5" id="edit-weight" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Peso" required>
+                            <input type="number" id="edit-reps" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Ripetizioni" required>
+                            <button type="button" id="edit-add-set-btn" class="w-1/3 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-md transition transform hover:scale-105">Aggiungi Serie</button>
+                        </div>
+                        <ul id="edit-sets-list" class="space-y-2 text-sm text-gray-300"></ul>
+                    </div>
+
+                    <div>
+                        <label for="edit-volume" class="block text-sm font-medium text-gray-400">Volume Totale (kg)</label>
+                        <input type="text" id="edit-volume" readonly class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none text-gray-100">
+                    </div>
+
+                    <div>
+                        <label for="edit-muscleGroup" class="block text-sm font-medium text-gray-400">Gruppo Muscolare</label>
+                        <select id="edit-muscleGroup" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 transition-colors" required>
+                            <option value="">Seleziona...</option>
+                            <option value="Petto">Petto</option>
+                            <option value="Schiena">Schiena</option>
+                            <option value="Gambe">Gambe</option>
+                            <option value="Spalle">Spalle</option>
+                            <option value="Braccia">Braccia</option>
+                            <option value="Addome">Addome</option>
+                            <option value="Cardio">Cardio</option>
+                            <option value="Corpo intero">Corpo intero</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="edit-notes" class="block text-sm font-medium text-gray-400">Note (Opzionale)</label>
+                        <textarea id="edit-notes" rows="2" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                        Salva Modifiche
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp, setDoc, doc, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        setLogLevel('debug');
+
+        const loader = document.getElementById('loader');
+        const showLoader = () => loader.classList.remove('hidden');
+        const hideLoader = () => loader.classList.add('hidden');
+
+        let db, auth;
+        let userId;
+        let currentSessionId = null;
+        let recentExercises = {};
+
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        const authStatusEl = document.getElementById('auth-status');
+        const homeViewEl = document.getElementById('home-view');
+        const homeStartBtn = document.getElementById('home-start-btn');
+        const homeHistoryBtn = document.getElementById('home-history-btn');
+        const workoutViewEl = document.getElementById('workout-view');
+        const workoutBackBtn = document.getElementById('workout-back-btn');
+        const historyViewEl = document.getElementById('history-view');
+        const historyBackBtn = document.getElementById('history-back-btn');
+        const sessionInfoEl = document.getElementById('session-info');
+        const exerciseForm = document.getElementById('exercise-form');
+        const sessionHistoryEl = document.getElementById('session-history');
+        const noHistoryEl = document.getElementById('no-history');
+        const dailyQuoteEl = document.getElementById('daily-quote');
+        
+        const messageModal = document.getElementById('message-modal');
+        const modalTitleEl = document.getElementById('modal-title');
+        const modalMessageEl = document.getElementById('modal-message');
+        const closeMessageModalBtn = document.getElementById('close-message-modal');
+
+        const exercisesModal = document.getElementById('exercises-modal');
+        const modalSessionTitleEl = document.getElementById('modal-session-title');
+        const exercisesListEl = document.getElementById('exercises-list');
+        const closeExercisesModalBtn = document.getElementById('close-exercises-modal');
+        const addExerciseToPastBtn = document.getElementById('add-exercise-to-past-btn');
+        const addExerciseToPastFormContainer = document.getElementById('add-exercise-to-past-form-container');
+        const backToExercisesBtn = document.getElementById('back-to-exercises-btn');
+        const addExerciseToPastForm = document.getElementById('add-exercise-to-past-form');
+        const pastSessionIdInput = document.getElementById('past-session-id');
+        const pastExerciseSelect = document.getElementById('past-exerciseSelect');
+        const pastNewExerciseInput = document.getElementById('past-newExerciseInput');
+        const pastMuscleGroupInput = document.getElementById('past-muscleGroup');
+        const pastNotesInput = document.getElementById('past-notes');
+        const pastVolumeInput = document.getElementById('past-volume');
+        const pastAddSetBtn = document.getElementById('past-add-set-btn');
+        const pastWeightInput = document.getElementById('past-weight');
+        const pastRepsInput = document.getElementById('past-reps');
+        const pastSetsList = document.getElementById('past-sets-list');
+
+        const muscleGroupSelect = document.getElementById('muscleGroup');
+        const exerciseSelect = document.getElementById('exerciseSelect');
+        const newExerciseInput = document.getElementById('newExerciseInput');
+        const notesInput = document.getElementById('notes');
+        const volumeInput = document.getElementById('volume');
+        const addSetBtn = document.getElementById('add-set-btn');
+        const weightInput = document.getElementById('weight');
+        const repsInput = document.getElementById('reps');
+        const setsList = document.getElementById('sets-list');
+        
+        const editModal = document.getElementById('edit-modal');
+        const editWorkoutForm = document.getElementById('edit-workout-form');
+        const closeEditModalBtn = document.getElementById('close-edit-modal');
+        const editSessionIdInput = document.getElementById('edit-session-id');
+        const editExerciseIdInput = document.getElementById('edit-exercise-id');
+        const editExerciseInput = document.getElementById('edit-exercise');
+        const editMuscleGroupInput = document.getElementById('edit-muscleGroup');
+        const editNotesInput = document.getElementById('edit-notes');
+        const editVolumeInput = document.getElementById('edit-volume');
+        const editAddSetBtn = document.getElementById('edit-add-set-btn');
+        const editWeightInput = document.getElementById('edit-weight');
+        const editRepsInput = document.getElementById('edit-reps');
+        const editSetsList = document.getElementById('edit-sets-list');
+
+        const muscleGroups = ["Petto", "Schiena", "Gambe", "Spalle", "Braccia", "Addome", "Cardio", "Corpo intero"];
+
+        let currentSets = [];
+        let pastSets = [];
+        let editSets = [];
+
+        const showMessage = (title, message) => {
+            modalTitleEl.textContent = title;
+            modalMessageEl.textContent = message;
+            messageModal.classList.remove('hidden');
+            messageModal.classList.add('flex');
+        };
+
+        closeMessageModalBtn.addEventListener('click', () => {
+            messageModal.classList.remove('flex');
+            messageModal.classList.add('hidden');
+        });
+
+        // Funzione per cambiare la vista
+        const showView = (viewId) => {
+            const views = [homeViewEl, workoutViewEl, historyViewEl];
+            views.forEach(view => {
+                view.classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+        };
+
+        const getDailyQuote = async () => {
+            const today = new Date().toDateString();
+            const storedQuote = localStorage.getItem('dailyQuote');
+            const storedDate = localStorage.getItem('dailyQuoteDate');
+
+            if (storedQuote && storedDate === today) {
+                dailyQuoteEl.textContent = storedQuote;
+                return;
+            }
+
+            try {
+                const payload = {
+                    contents: [{ parts: [{ text: "Genera una breve e incisiva frase motivazionale italiana sull'allenamento o sulla perseveranza. Non includere il nome di un autore." }] }],
+                    tools: [{ "google_search": {} }],
+                    systemInstruction: {
+                        parts: [{ text: "Sei un allenatore motivazionale. Fornisci solo una frase concisa." }]
+                    },
+                };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const quoteText = result.candidates?.[0]?.content?.parts?.[0]?.text || "La forza non viene da ciò che fai, ma dal superare ciò che pensavi di non poter fare.";
+                
+                dailyQuoteEl.textContent = quoteText;
+                localStorage.setItem('dailyQuote', quoteText);
+                localStorage.setItem('dailyQuoteDate', today);
+            } catch (error) {
+                console.error("Errore nel recupero della citazione:", error);
+                dailyQuoteEl.textContent = "La forza non viene da ciò che fai, ma dal superare ciò che pensavi di non poter fare.";
+            }
+        };
+
+        const updateVolumePreview = (sets, volumeEl) => {
+            const totalVolume = sets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
+            volumeEl.value = totalVolume.toLocaleString('it-IT');
+        };
+
+        // Inizializza Firebase
+        if (Object.keys(firebaseConfig).length > 0) {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+            } catch (error) {
+                console.error("Errore nell'inizializzazione di Firebase:", error);
+                showMessage("Errore", "Impossibile connettersi a Firebase. Controlla la console per i dettagli.");
+            }
+        } else {
+            console.error("Configurazione Firebase non trovata.");
+            showMessage("Errore", "Configurazione Firebase mancante.");
+        }
+
+        const sessionsCollectionPath = (uid) => `/artifacts/${appId}/users/${uid}/sessions`;
+        const exercisesCollectionPath = (uid, sessionId) => `/artifacts/${appId}/users/${uid}/sessions/${sessionId}/exercises`;
+
+        // Gestione dell'autenticazione
+        if (auth) {
+            showLoader();
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    authStatusEl.textContent = `Autenticato come utente: ${userId}`;
+                    setupRealtimeListener(userId);
+                    await fetchRecentExercises(); // Fetch recent exercises on auth
+                    getDailyQuote();
+                    showView('home-view');
+                } else {
+                    const customToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    try {
+                        if (customToken) {
+                            await signInWithCustomToken(auth, customToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (error) {
+                        console.error("Errore durante l'autenticazione:", error);
+                        showMessage("Errore di autenticazione", "Si è verificato un problema durante l'accesso. Riprova.");
+                    }
+                }
+                hideLoader();
+            });
+        }
+
+        // Funzione per mostrare la cronologia delle sessioni
+        const displaySessions = (sessions) => {
+            if (!sessions || sessions.length === 0) {
+                noHistoryEl.classList.remove('hidden');
+                sessionHistoryEl.innerHTML = '';
+                return;
+            }
+            
+            noHistoryEl.classList.add('hidden');
+            sessionHistoryEl.innerHTML = '';
+            
+            const validSessions = sessions.filter(s => s.timestamp && s.timestamp.seconds);
+            validSessions.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+
+            validSessions.forEach(session => {
+                const sessionItem = document.createElement('div');
+                sessionItem.classList.add('bg-gray-700', 'p-4', 'rounded-lg', 'shadow-md', 'cursor-pointer', 'flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'space-y-2', 'sm:space-y-0', 'hover:bg-gray-600', 'transition-colors');
+                sessionItem.dataset.id = session.id;
+                const formattedDate = new Date(session.timestamp.seconds * 1000).toLocaleString();
+                sessionItem.innerHTML = `
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-100">Allenamento del ${formattedDate}</h3>
+                    </div>
+                `;
+                sessionHistoryEl.appendChild(sessionItem);
+            });
+
+            document.querySelectorAll('#session-history > div').forEach(item => {
+                item.addEventListener('click', handleSessionClick);
+            });
+        };
+
+        const setupRealtimeListener = (uid) => {
+            const sessionsCollectionRef = collection(db, sessionsCollectionPath(uid));
+            const q = query(sessionsCollectionRef, orderBy('timestamp', 'desc')); 
+            onSnapshot(q, (querySnapshot) => {
+                const sessions = [];
+                querySnapshot.forEach((doc) => {
+                    sessions.push({ id: doc.id, ...doc.data() });
+                });
+                displaySessions(sessions);
+            }, (error) => {
+                console.error("Errore durante l'ascolto delle sessioni:", error);
+                showMessage("Errore", "Impossibile caricare la cronologia delle sessioni.");
+            });
+        };
+
+        const fetchRecentExercises = async () => {
+            if (!userId) return;
+            recentExercises = {};
+            const sessionsQuery = query(collection(db, sessionsCollectionPath(userId)), orderBy('timestamp', 'desc'), limit(10));
+            const sessionsSnapshot = await getDocs(sessionsQuery);
+            
+            for (const sessionDoc of sessionsSnapshot.docs) {
+                const exercisesQuery = collection(db, exercisesCollectionPath(userId, sessionDoc.id));
+                const exercisesSnapshot = await getDocs(exercisesQuery);
+                
+                exercisesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const group = data.muscleGroup || 'Non specificato';
+                    const exerciseName = data.exercise;
+
+                    if (!recentExercises[group]) {
+                        recentExercises[group] = {};
+                    }
+
+                    if (!recentExercises[group][exerciseName]) {
+                        recentExercises[group][exerciseName] = data;
+                    }
+                });
+            }
+        };
+
+        const populateExerciseDropdown = (selectEl, inputEl, muscleGroup) => {
+            selectEl.innerHTML = '<option value="">Seleziona...</option>';
+            inputEl.classList.add('hidden');
+            
+            const exercisesForGroup = recentExercises[muscleGroup] || {};
+            const exerciseNames = Object.keys(exercisesForGroup).sort();
+
+            exerciseNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                selectEl.appendChild(option);
+            });
+
+            const newOption = document.createElement('option');
+            newOption.value = 'new';
+            newOption.textContent = 'Nuovo esercizio...';
+            selectEl.appendChild(newOption);
+        };
+
+        const handleExerciseSelection = (selectEl, inputEl, muscleGroup, weightEl, repsEl, setsListEl, volumeEl, setsArray) => {
+            const selectedValue = selectEl.value;
+            if (selectedValue === 'new') {
+                inputEl.value = '';
+                inputEl.classList.remove('hidden');
+                weightEl.value = '';
+                repsEl.value = '10';
+                setsArray.length = 0;
+            } else if (selectedValue) {
+                inputEl.classList.add('hidden');
+                const exerciseData = recentExercises[muscleGroup][selectedValue];
+                if (exerciseData) {
+                    setsArray.length = 0;
+                    if (exerciseData.sets && Array.isArray(exerciseData.sets)) {
+                        exerciseData.sets.forEach(set => setsArray.push(set));
+                    }
+                    if (setsArray.length > 0) {
+                        weightEl.value = setsArray[0].weight || '';
+                        repsEl.value = setsArray[0].reps || '10';
+                    }
+                }
+            } else {
+                 inputEl.classList.add('hidden');
+                 setsArray.length = 0;
+            }
+            renderSetsList(setsArray, setsListEl, weightEl, repsEl, volumeEl);
+        };
+        
+        const renderSetsList = (sets, setsListEl, weightEl, repsEl, volumeEl) => {
+            setsListEl.innerHTML = '';
+            sets.forEach((set, index) => {
+                const li = document.createElement('li');
+                li.classList.add('flex', 'justify-between', 'items-center', 'py-1', 'px-2', 'bg-gray-600', 'rounded-md');
+                li.innerHTML = `
+                    <span>Serie ${index + 1}: ${set.weight}kg x ${set.reps}</span>
+                    <button type="button" class="remove-set-btn text-red-400 hover:text-red-300 transition-colors" data-index="${index}">&times;</button>
+                `;
+                setsListEl.appendChild(li);
+            });
+            updateVolumePreview(sets, volumeEl);
+
+            setsListEl.querySelectorAll('.remove-set-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.dataset.index);
+                    sets.splice(index, 1);
+                    renderSetsList(sets, setsListEl, weightEl, repsEl, volumeEl);
+                });
+            });
+        };
+
+        const addSet = (weightEl, repsEl, setsArray, setsListEl, volumeEl) => {
+            const weight = parseFloat(weightEl.value);
+            const reps = parseInt(repsEl.value, 10);
+            if (!isNaN(weight) && !isNaN(reps) && weight > 0 && reps > 0) {
+                setsArray.push({ weight, reps });
+                renderSetsList(setsArray, setsListEl, weightEl, repsEl, volumeEl);
+                weightEl.value = weight;
+                repsEl.value = reps;
+            } else {
+                 showMessage("Attenzione", "Peso e Ripetizioni devono essere numeri validi e maggiori di zero.");
+            }
+        };
+
+        addSetBtn.addEventListener('click', () => addSet(weightInput, repsInput, currentSets, setsList, volumeInput));
+        pastAddSetBtn.addEventListener('click', () => addSet(pastWeightInput, pastRepsInput, pastSets, pastSetsList, pastVolumeInput));
+        editAddSetBtn.addEventListener('click', () => addSet(editWeightInput, editRepsInput, editSets, editSetsList, editVolumeInput));
+
+        // Main form event listeners
+        muscleGroupSelect.addEventListener('change', (e) => {
+            populateExerciseDropdown(exerciseSelect, newExerciseInput, e.target.value);
+            handleExerciseSelection(exerciseSelect, newExerciseInput, e.target.value, weightInput, repsInput, setsList, volumeInput, currentSets);
+        });
+
+        exerciseSelect.addEventListener('change', (e) => {
+            handleExerciseSelection(exerciseSelect, newExerciseInput, muscleGroupSelect.value, weightInput, repsInput, setsList, volumeInput, currentSets);
+        });
+
+        // Past form event listeners
+        pastMuscleGroupInput.addEventListener('change', (e) => {
+            populateExerciseDropdown(pastExerciseSelect, pastNewExerciseInput, e.target.value);
+            handleExerciseSelection(pastExerciseSelect, pastNewExerciseInput, e.target.value, pastWeightInput, pastRepsInput, pastSetsList, pastVolumeInput, pastSets);
+        });
+
+        pastExerciseSelect.addEventListener('change', (e) => {
+            handleExerciseSelection(pastExerciseSelect, pastNewExerciseInput, pastMuscleGroupInput.value, pastWeightInput, pastRepsInput, pastSetsList, pastVolumeInput, pastSets);
+        });
+
+        // Funzione per iniziare un allenamento
+        homeStartBtn.addEventListener('click', () => {
+            currentSessionId = null;
+            showView('workout-view');
+            sessionInfoEl.textContent = `Iniziato: ${new Date().toLocaleString()}`;
+            exerciseForm.reset();
+            currentSets = [];
+            setsList.innerHTML = '';
+            volumeInput.value = '';
+        });
+
+        // Funzione per tornare indietro senza salvare
+        workoutBackBtn.addEventListener('click', () => {
+            currentSessionId = null;
+            showView('home-view');
+        });
+
+        // Funzione per aggiungere un esercizio alla sessione corrente
+        exerciseForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            let exerciseName = exerciseSelect.value;
+            if (exerciseName === 'new') {
+                exerciseName = newExerciseInput.value.trim();
+            }
+
+            const muscleGroup = muscleGroupSelect.value;
+            const notes = notesInput.value.trim();
+            const totalVolume = currentSets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
+
+            if (!exerciseName || !muscleGroup || currentSets.length === 0) {
+                showMessage("Errore", "Per favore, compila tutti i campi obbligatori e aggiungi almeno una serie.");
+                return;
+            }
+
+            const newExercise = {
+                exercise: exerciseName,
+                muscleGroup,
+                sets: currentSets,
+                volume: totalVolume,
+                notes,
+                timestamp: serverTimestamp(),
+            };
+
+            showLoader();
+            try {
+                if (!currentSessionId) {
+                    const newSessionRef = await addDoc(collection(db, sessionsCollectionPath(userId)), {
+                        timestamp: serverTimestamp(),
+                    });
+                    currentSessionId = newSessionRef.id;
+                }
+
+                await addDoc(collection(db, exercisesCollectionPath(userId, currentSessionId)), newExercise);
+                exerciseForm.reset();
+                currentSets = [];
+                setsList.innerHTML = '';
+                volumeInput.value = '';
+                await fetchRecentExercises(); 
+                showMessage("Successo", "Esercizio aggiunto con successo!");
+            } catch (error) {
+                console.error("Errore nell'aggiungere l'esercizio:", error);
+                showMessage("Errore", "Si è verificato un errore durante il salvataggio dell'esercizio.");
+            } finally {
+                hideLoader();
+            }
+        });
+        
+        // Funzione per visualizzare gli esercizi di una sessione
+        const handleSessionClick = async (e) => {
+            let sessionId = e.currentTarget.dataset.id;
+            if (!sessionId) {
+                showMessage("Errore", "ID sessione non trovato.");
+                return;
+            }
+
+            showLoader();
+            exercisesListEl.innerHTML = '';
+            modalSessionTitleEl.textContent = `Esercizi della Sessione`;
+            pastSessionIdInput.value = sessionId;
+            addExerciseToPastFormContainer.classList.add('hidden');
+            exercisesListEl.classList.remove('hidden');
+
+            try {
+                const exercisesQuery = query(collection(db, exercisesCollectionPath(userId, sessionId)));
+                const querySnapshot = await getDocs(exercisesQuery);
+                
+                const exercises = [];
+                querySnapshot.forEach(doc => {
+                    exercises.push({ id: doc.id, ...doc.data() });
+                });
+
+                if (exercises.length === 0) {
+                    exercisesListEl.innerHTML = '<p class="text-center text-gray-400">Nessun esercizio registrato per questa sessione.</p>';
+                } else {
+                    const groupedExercises = exercises.reduce((acc, current) => {
+                        const group = current.muscleGroup || 'Non specificato';
+                        if (!acc[group]) {
+                            acc[group] = [];
+                        }
+                        acc[group].push(current);
+                        return acc;
+                    }, {});
+
+                    for (const group of muscleGroups) {
+                        if (groupedExercises[group]) {
+                            const groupTitle = document.createElement('h4');
+                            groupTitle.classList.add('text-lg', 'font-semibold', 'text-gray-200', 'mt-4');
+                            groupTitle.textContent = group;
+                            exercisesListEl.appendChild(groupTitle);
+
+                            groupedExercises[group].forEach(exercise => {
+                                const exerciseItem = document.createElement('div');
+                                exerciseItem.classList.add('bg-gray-700', 'p-4', 'rounded-lg', 'shadow-md', 'flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'space-y-2', 'sm:space-y-0');
+                                
+                                let setsHtml = '';
+                                if (exercise.sets && Array.isArray(exercise.sets)) {
+                                     setsHtml = exercise.sets.map((set, index) => `
+                                         <p class="text-sm text-gray-300 ml-4">
+                                            Serie ${index + 1}: <span class="text-white">${set.weight}kg x ${set.reps}</span>
+                                         </p>
+                                     `).join('');
+                                }
+
+                                exerciseItem.innerHTML = `
+                                    <div>
+                                        <h5 class="font-semibold text-gray-100">${exercise.exercise}</h5>
+                                        ${setsHtml}
+                                        <p class="text-sm text-gray-300 mt-2">
+                                            Volume Totale: <span class="text-white">${(exercise.volume || 0).toLocaleString('it-IT')} kg</span>
+                                        </p>
+                                        ${exercise.notes ? `<p class="text-sm italic text-gray-400 mt-1">Note: ${exercise.notes}</p>` : ''}
+                                    </div>
+                                    <div class="flex space-x-2 mt-2 sm:mt-0">
+                                        <button class="edit-btn text-blue-400 hover:text-blue-300 text-sm font-medium" data-session-id="${sessionId}" data-exercise-id="${exercise.id}">Modifica</button>
+                                        <button class="delete-btn text-red-400 hover:text-red-300 text-sm font-medium" data-session-id="${sessionId}" data-exercise-id="${exercise.id}">Elimina</button>
+                                    </div>
+                                `;
+                                exercisesListEl.appendChild(exerciseItem);
+                            });
+                        }
+                    }
+                    
+                    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEdit));
+                    document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDelete));
+                }
+
+                exercisesModal.classList.remove('hidden');
+                exercisesModal.classList.add('flex');
+            } catch (error) {
+                console.error("Errore nel caricamento degli esercizi:", error);
+                showMessage("Errore", "Impossibile caricare gli esercizi della sessione.");
+            } finally {
+                hideLoader();
+            }
+        };
+
+        // Gestisce la chiusura dei modali
+        closeExercisesModalBtn.addEventListener('click', () => {
+            exercisesModal.classList.remove('flex');
+            exercisesModal.classList.add('hidden');
+        });
+        closeEditModalBtn.addEventListener('click', () => {
+            editModal.classList.remove('flex');
+            editModal.classList.add('hidden');
+        });
+
+        // Funzione per la modifica di un esercizio
+        const handleEdit = async (e) => {
+            const sessionId = e.target.dataset.sessionId;
+            const exerciseId = e.target.dataset.exerciseId;
+            if (!sessionId || !exerciseId) return;
+
+            showLoader();
+            editSets.length = 0;
+            editSetsList.innerHTML = '';
+            editVolumeInput.value = '';
+
+            try {
+                const exerciseDoc = await getDoc(doc(db, exercisesCollectionPath(userId, sessionId), exerciseId));
+                if (exerciseDoc.exists()) {
+                    const exerciseData = exerciseDoc.data();
+                    editSessionIdInput.value = sessionId;
+                    editExerciseIdInput.value = exerciseId;
+                    editExerciseInput.value = exerciseData.exercise;
+                    editMuscleGroupInput.value = exerciseData.muscleGroup || '';
+                    editNotesInput.value = exerciseData.notes || '';
+                    
+                    if (exerciseData.sets && Array.isArray(exerciseData.sets)) {
+                        exerciseData.sets.forEach(set => editSets.push(set));
+                    }
+                    renderSetsList(editSets, editSetsList, editWeightInput, editRepsInput, editVolumeInput);
+                    
+                    editModal.classList.remove('hidden');
+                    editModal.classList.add('flex');
+                } else {
+                    showMessage("Errore", "Esercizio non trovato.");
+                }
+            } catch (error) {
+                console.error("Errore nel caricare i dati per la modifica:", error);
+                showMessage("Errore", "Impossibile caricare i dati.");
+            } finally {
+                hideLoader();
+            }
+        };
+
+        // Funzione per salvare le modifiche di un esercizio
+        editWorkoutForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const sessionId = editSessionIdInput.value;
+            const exerciseId = editExerciseIdInput.value;
+            if (!sessionId || !exerciseId) {
+                showMessage("Errore", "Dati allenamento non validi per la modifica.");
+                return;
+            }
+
+            const totalVolume = editSets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
+            
+            if (editSets.length === 0) {
+                 showMessage("Errore", "Per favor, aggiungi almeno una serie.");
+                 return;
+            }
+
+            const updatedExercise = {
+                exercise: editExerciseInput.value.trim(),
+                muscleGroup: editMuscleGroupInput.value,
+                sets: editSets,
+                volume: totalVolume,
+                notes: editNotesInput.value.trim(),
+            };
+
+            showLoader();
+            try {
+                await updateDoc(doc(db, exercisesCollectionPath(userId, sessionId), exerciseId), updatedExercise);
+                editModal.classList.remove('flex');
+                editModal.classList.add('hidden');
+                exercisesModal.classList.remove('flex');
+                exercisesModal.classList.add('hidden');
+                showMessage("Successo", "Esercizio modificato con successo!");
+            } catch (error) {
+                console.error("Errore durante la modifica dell'esercizio:", error);
+                showMessage("Errore", "Si è verificato un errore durante la modifica dell'esercizio.");
+            } finally {
+                hideLoader();
+            }
+        });
+
+        // Funzione per eliminare un esercizio
+        const handleDelete = async (e) => {
+            const sessionId = e.target.dataset.sessionId;
+            const exerciseId = e.target.dataset.exerciseId;
+            if (!sessionId || !exerciseId) return;
+
+            showLoader();
+            try {
+                await deleteDoc(doc(db, exercisesCollectionPath(userId, sessionId), exerciseId));
+                exercisesModal.classList.remove('flex');
+                exercisesModal.classList.add('hidden');
+                showMessage("Eliminato", "Esercizio eliminato con successo.");
+            } catch (error) {
+                console.error("Errore nell'eliminare l'esercizio:", error);
+                showMessage("Errore", "Si è verificato un errore durante l'eliminazione.");
+            } finally {
+                hideLoader();
+            }
+        };
+        
+        // Nuovi Event Listeners per la gestione dell'aggiunta di esercizi passati
+        addExerciseToPastBtn.addEventListener('click', () => {
+            exercisesListEl.classList.add('hidden');
+            addExerciseToPastFormContainer.classList.remove('hidden');
+            pastSets = [];
+            pastSetsList.innerHTML = '';
+            pastVolumeInput.value = '';
+            pastWeightInput.value = '';
+            pastRepsInput.value = '';
+        });
+
+        backToExercisesBtn.addEventListener('click', () => {
+            addExerciseToPastFormContainer.classList.add('hidden');
+            exercisesListEl.classList.remove('hidden');
+        });
+
+        addExerciseToPastForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const sessionId = pastSessionIdInput.value;
+            if (!sessionId || !userId) {
+                showMessage("Errore", "Dati sessione non validi.");
+                return;
+            }
+            
+            let exerciseName = pastExerciseSelect.value;
+            if (exerciseName === 'new') {
+                exerciseName = pastNewExerciseInput.value.trim();
+            }
+
+            const muscleGroup = pastMuscleGroupInput.value;
+            const notes = pastNotesInput.value.trim();
+            const totalVolume = pastSets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
+
+            if (!exerciseName || !muscleGroup || pastSets.length === 0) {
+                showMessage("Errore", "Per favore, compila tutti i campi obbligatori e aggiungi almeno una serie.");
+                return;
+            }
+
+            const newExercise = {
+                exercise: exerciseName,
+                muscleGroup,
+                sets: pastSets,
+                volume: totalVolume,
+                notes,
+                timestamp: serverTimestamp(),
+            };
+
+            showLoader();
+            try {
+                await addDoc(collection(db, exercisesCollectionPath(userId, sessionId)), newExercise);
+                addExerciseToPastForm.reset();
+                pastSets = [];
+                pastSetsList.innerHTML = '';
+                pastVolumeInput.value = '';
+                addExerciseToPastFormContainer.classList.add('hidden');
+                exercisesListEl.classList.remove('hidden');
+                showMessage("Successo", "Esercizio aggiunto alla sessione passata!");
+            } catch (error) {
+                console.error("Errore nell'aggiungere l'esercizio:", error);
+                showMessage("Errore", "Si è verificato un errore durante il salvataggio.");
+            } finally {
+                hideLoader();
+            }
+        });
+
+        // Event listener per la navigazione
+        homeHistoryBtn.addEventListener('click', () => {
+            showView('history-view');
+        });
+        historyBackBtn.addEventListener('click', () => {
+            showView('home-view');
+        });
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+</body>
+</html>
