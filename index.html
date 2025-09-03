@@ -285,7 +285,7 @@
     apiKey: "AIzaSyAuZfMVOWJSV4og8CrvsGb8cKskzW3kfV8",
     authDomain: "gym-tracker-5ff1d.firebaseapp.com",
     projectId: "gym-tracker-5ff1d",
-    storageBucket: "gym-tracker-5ff1d.firebasestorage.app",
+    storageBucket: "gym-tracker-5ff1d.appspot.com",
     messagingSenderId: "249842399106",
     appId: "1:249842399106:web:be361fc20cec812e89c19b",
     measurementId: "G-YXFTKCB77D"
@@ -401,9 +401,7 @@
                         parts: [{ text: "Sei un allenatore motivazionale. Fornisci solo una frase concisa." }]
                     },
                 };
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
+                
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1018,8 +1016,6 @@
             showView('home-view');
         });
     </script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
 </body>
 </html>
+
