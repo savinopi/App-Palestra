@@ -1,5 +1,4 @@
- 
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -279,13 +278,11 @@
         let recentExercises = {};
         let historyUnsubscribe = null;
 
-       // const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-		
-		const firebaseConfig = {
+     	const firebaseConfig = {
     apiKey: "AIzaSyAuZfMVOWJSV4og8CrvsGb8cKskzW3kfV8",
     authDomain: "gym-tracker-5ff1d.firebaseapp.com",
     projectId: "gym-tracker-5ff1d",
-    storageBucket: "gym-tracker-5ff1d.appspot.com",
+    storageBucket: "gym-tracker-5ff1d.firebasestorage.app",
     messagingSenderId: "249842399106",
     appId: "1:249842399106:web:be361fc20cec812e89c19b",
     measurementId: "G-YXFTKCB77D"
@@ -365,6 +362,7 @@
             modalTitleEl.textContent = title;
             modalMessageEl.textContent = message;
             messageModal.classList.remove('hidden');
+            modalMessageEl.classList.remove('hidden');
             messageModal.classList.add('flex');
         };
 
@@ -401,7 +399,9 @@
                         parts: [{ text: "Sei un allenatore motivazionale. Fornisci solo una frase concisa." }]
                     },
                 };
-                
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -433,6 +433,9 @@
             volumeEl.value = totalVolume.toLocaleString('it-IT');
         };
 
+        const sessionsCollectionPath = (uid) => `users/${uid}/sessions`;
+        const exercisesCollectionPath = (uid, sessionId) => `users/${uid}/sessions/${sessionId}/exercises`;
+
         // Inizializza Firebase
         if (Object.keys(firebaseConfig).length > 0) {
             try {
@@ -445,11 +448,8 @@
             }
         } else {
             console.error("Configurazione Firebase non trovata.");
-            showMessage("Errore", "Configurazione Firebase mancante.");
+            showMessage("Errore", "Configurazione Firebase mancante. Vai su Firebase Console per ottenerla.");
         }
-
-        const sessionsCollectionPath = (uid) => `/artifacts/${appId}/users/${uid}/sessions`;
-        const exercisesCollectionPath = (uid, sessionId) => `/artifacts/${appId}/users/${uid}/sessions/${sessionId}/exercises`;
 
         // Gestione dell'autenticazione
         if (auth) {
@@ -462,14 +462,8 @@
                     getDailyQuote();
                     showView('home-view');
                 } else {
-                    const customToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
                     try {
-                        let authResult;
-                        if (customToken) {
-                            authResult = await signInWithCustomToken(auth, customToken);
-                        } else {
-                            authResult = await signInAnonymously(auth);
-                        }
+                        const authResult = await signInAnonymously(auth);
                         userId = authResult.user.uid;
                         authStatusEl.textContent = `Autenticato come utente: ${userId}`;
                         await fetchRecentExercises();
@@ -477,7 +471,7 @@
                         showView('home-view');
                     } catch (error) {
                         console.error("Errore durante l'autenticazione:", error);
-                        showMessage("Errore", "Si è verificato un problema di accesso. Riprova.");
+                        showMessage("Errore", "Si è verificato un problema di accesso. Controlla la console.");
                     }
                 }
                 hideLoader();
@@ -622,7 +616,7 @@
                 const li = document.createElement('li');
                 li.classList.add('flex', 'justify-between', 'items-center', 'py-1', 'px-2', 'bg-gray-600', 'rounded-md');
                 li.innerHTML = `
-                    <span>Serie ${index + 1}: ${set.weight}kg x ${set.reps}</span>
+                    <span>Serie ${index + 1}: <span class="text-white">${set.weight}kg x ${set.reps}</span></span>
                     <button type="button" class="remove-set-btn text-red-400 hover:text-red-300 transition-colors" data-index="${index}">&times;</button>
                 `;
                 setsListEl.appendChild(li);
@@ -706,7 +700,7 @@
             const totalVolume = currentSets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
 
             if (!exerciseName || !muscleGroup || currentSets.length === 0) {
-                showMessage("Errore", "Per favore, compila tutti i campi obbligatori e aggiungi almeno una serie.");
+                showMessage("Errore", "Per favor, compila tutti i campi obbligatori e aggiungi almeno una serie.");
                 return;
             }
 
@@ -1016,6 +1010,8 @@
             showView('home-view');
         });
     </script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
 </body>
 </html>
-
