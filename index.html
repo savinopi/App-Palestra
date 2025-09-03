@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+ 
+  <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -276,8 +277,20 @@
         let userId;
         let currentSessionId = null;
         let recentExercises = {};
+        let historyUnsubscribe = null;
 
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+       // const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+		
+		const firebaseConfig = {
+    apiKey: "AIzaSyAuZfMVOWJSV4og8CrvsGb8cKskzW3kfV8",
+    authDomain: "gym-tracker-5ff1d.firebaseapp.com",
+    projectId: "gym-tracker-5ff1d",
+    storageBucket: "gym-tracker-5ff1d.firebasestorage.app",
+    messagingSenderId: "249842399106",
+    appId: "1:249842399106:web:be361fc20cec812e89c19b",
+    measurementId: "G-YXFTKCB77D"
+  };
+		
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         const authStatusEl = document.getElementById('auth-status');
@@ -373,6 +386,7 @@
             const today = new Date().toDateString();
             const storedQuote = localStorage.getItem('dailyQuote');
             const storedDate = localStorage.getItem('dailyQuoteDate');
+            const fallbackQuote = "La forza non viene da ciò che fai, ma dal superare ciò che pensavi di non poter fare.";
 
             if (storedQuote && storedDate === today) {
                 dailyQuoteEl.textContent = storedQuote;
@@ -395,15 +409,24 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        dailyQuoteEl.textContent = fallbackQuote;
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const result = await response.json();
-                const quoteText = result.candidates?.[0]?.content?.parts?.[0]?.text || "La forza non viene da ciò che fai, ma dal superare ciò che pensavi di non poter fare.";
+                const quoteText = result.candidates?.[0]?.content?.parts?.[0]?.text || fallbackQuote;
                 
                 dailyQuoteEl.textContent = quoteText;
                 localStorage.setItem('dailyQuote', quoteText);
                 localStorage.setItem('dailyQuoteDate', today);
             } catch (error) {
                 console.error("Errore nel recupero della citazione:", error);
-                dailyQuoteEl.textContent = "La forza non viene da ciò che fai, ma dal superare ciò che pensavi di non poter fare.";
+                dailyQuoteEl.textContent = fallbackQuote;
             }
         };
 
@@ -437,72 +460,88 @@
                 if (user) {
                     userId = user.uid;
                     authStatusEl.textContent = `Autenticato come utente: ${userId}`;
-                    setupRealtimeListener(userId);
                     await fetchRecentExercises(); // Fetch recent exercises on auth
                     getDailyQuote();
                     showView('home-view');
                 } else {
                     const customToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
                     try {
+                        let authResult;
                         if (customToken) {
-                            await signInWithCustomToken(auth, customToken);
+                            authResult = await signInWithCustomToken(auth, customToken);
                         } else {
-                            await signInAnonymously(auth);
+                            authResult = await signInAnonymously(auth);
                         }
+                        userId = authResult.user.uid;
+                        authStatusEl.textContent = `Autenticato come utente: ${userId}`;
+                        await fetchRecentExercises();
+                        getDailyQuote();
+                        showView('home-view');
                     } catch (error) {
                         console.error("Errore durante l'autenticazione:", error);
-                        showMessage("Errore di autenticazione", "Si è verificato un problema durante l'accesso. Riprova.");
+                        showMessage("Errore", "Si è verificato un problema di accesso. Riprova.");
                     }
                 }
                 hideLoader();
             });
         }
 
-        // Funzione per mostrare la cronologia delle sessioni
-        const displaySessions = (sessions) => {
-            if (!sessions || sessions.length === 0) {
-                noHistoryEl.classList.remove('hidden');
-                sessionHistoryEl.innerHTML = '';
+        const loadHistory = async () => {
+            if (!userId) {
+                showMessage("Errore", "Utente non autenticato. Riprova.");
                 return;
             }
-            
-            noHistoryEl.classList.add('hidden');
+
+            showLoader();
             sessionHistoryEl.innerHTML = '';
+
+            if (historyUnsubscribe) {
+                historyUnsubscribe();
+            }
             
-            const validSessions = sessions.filter(s => s.timestamp && s.timestamp.seconds);
-            validSessions.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+            try {
+                const sessionsCollectionRef = collection(db, sessionsCollectionPath(userId));
+                const q = query(sessionsCollectionRef, orderBy('timestamp', 'desc'));
+                
+                historyUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                     const sessions = [];
+                     querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        if (data.timestamp) { // Ensure the timestamp is valid
+                            sessions.push({ id: doc.id, ...data });
+                        }
+                    });
 
-            validSessions.forEach(session => {
-                const sessionItem = document.createElement('div');
-                sessionItem.classList.add('bg-gray-700', 'p-4', 'rounded-lg', 'shadow-md', 'cursor-pointer', 'flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'space-y-2', 'sm:space-y-0', 'hover:bg-gray-600', 'transition-colors');
-                sessionItem.dataset.id = session.id;
-                const formattedDate = new Date(session.timestamp.seconds * 1000).toLocaleString();
-                sessionItem.innerHTML = `
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-100">Allenamento del ${formattedDate}</h3>
-                    </div>
-                `;
-                sessionHistoryEl.appendChild(sessionItem);
-            });
-
-            document.querySelectorAll('#session-history > div').forEach(item => {
-                item.addEventListener('click', handleSessionClick);
-            });
-        };
-
-        const setupRealtimeListener = (uid) => {
-            const sessionsCollectionRef = collection(db, sessionsCollectionPath(uid));
-            const q = query(sessionsCollectionRef, orderBy('timestamp', 'desc')); 
-            onSnapshot(q, (querySnapshot) => {
-                const sessions = [];
-                querySnapshot.forEach((doc) => {
-                    sessions.push({ id: doc.id, ...doc.data() });
+                    sessionHistoryEl.innerHTML = ''; // Clear and re-render
+                    
+                    if (sessions.length === 0) {
+                        noHistoryEl.classList.remove('hidden');
+                    } else {
+                        noHistoryEl.classList.add('hidden');
+                        sessions.forEach(session => {
+                            const sessionItem = document.createElement('div');
+                            sessionItem.classList.add('bg-gray-700', 'p-4', 'rounded-lg', 'shadow-md', 'cursor-pointer', 'flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'space-y-2', 'sm:space-y-0', 'hover:bg-gray-600', 'transition-colors');
+                            sessionItem.dataset.id = session.id;
+                            const formattedDate = new Date(session.timestamp.seconds * 1000).toLocaleString();
+                            sessionItem.innerHTML = `
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-100">Allenamento del ${formattedDate}</h3>
+                                </div>
+                            `;
+                            sessionHistoryEl.appendChild(sessionItem);
+                        });
+                        document.querySelectorAll('#session-history > div').forEach(item => {
+                            item.addEventListener('click', handleSessionClick);
+                        });
+                    }
                 });
-                displaySessions(sessions);
-            }, (error) => {
-                console.error("Errore durante l'ascolto delle sessioni:", error);
-                showMessage("Errore", "Impossibile caricare la cronologia delle sessioni.");
-            });
+
+            } catch (error) {
+                console.error("Errore nel caricamento della cronologia:", error);
+                showMessage("Errore", "Impossibile caricare la cronologia degli allenamenti.");
+            } finally {
+                hideLoader();
+            }
         };
 
         const fetchRecentExercises = async () => {
@@ -512,7 +551,7 @@
             const sessionsSnapshot = await getDocs(sessionsQuery);
             
             for (const sessionDoc of sessionsSnapshot.docs) {
-                const exercisesQuery = collection(db, exercisesCollectionPath(userId, sessionDoc.id));
+                const exercisesQuery = query(collection(db, exercisesCollectionPath(userId, sessionDoc.id)), orderBy('timestamp', 'desc'));
                 const exercisesSnapshot = await getDocs(exercisesQuery);
                 
                 exercisesSnapshot.forEach(doc => {
@@ -939,7 +978,7 @@
             const totalVolume = pastSets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
 
             if (!exerciseName || !muscleGroup || pastSets.length === 0) {
-                showMessage("Errore", "Per favore, compila tutti i campi obbligatori e aggiungi almeno una serie.");
+                showMessage("Errore", "Per favor, compila tutti i campi obbligatori e aggiungi almeno una serie.");
                 return;
             }
 
@@ -973,6 +1012,7 @@
         // Event listener per la navigazione
         homeHistoryBtn.addEventListener('click', () => {
             showView('history-view');
+            loadHistory();
         });
         historyBackBtn.addEventListener('click', () => {
             showView('home-view');
