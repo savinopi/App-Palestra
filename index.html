@@ -13,7 +13,7 @@
             font-family: 'Inter', sans-serif;
         }
         .body-bg {
-            background-image: linear-gradient(135deg, #1f2937 0%, #0c0e12 100%);
+            background-image: url('https://github.com/savinopi/App-Palestra/blob/img/Background.jpg?raw=true');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -161,7 +161,7 @@
         </div>
         
         <!-- Modale per i messaggi -->
-        <div id="message-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-gray-900 bg-opacity-75">
+        <div id="message-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900 bg-opacity-75 hidden">
             <div class="bg-gray-800 p-6 rounded-2xl shadow-xl max-w-sm w-full border-t-2 border-red-600/30">
                 <div class="flex justify-between items-start mb-4">
                     <h3 id="modal-title" class="text-xl font-semibold text-gray-100"></h3>
@@ -170,15 +170,33 @@
                 <p id="modal-message" class="text-gray-300"></p>
             </div>
         </div>
+        
+        <!-- Modale per la conferma di eliminazione -->
+        <div id="confirm-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900 bg-opacity-75 hidden">
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-xl max-w-sm w-full border-t-2 border-red-600/30">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-xl font-semibold text-gray-100">Conferma Eliminazione</h3>
+                    <button id="close-confirm-modal" class="text-gray-400 hover:text-gray-100">&times;</button>
+                </div>
+                <p id="confirm-message" class="text-gray-300 mb-4">Sei sicuro di voler eliminare questo allenamento? Questa azione non può essere annullata.</p>
+                <div class="flex justify-end space-x-4">
+                    <button id="confirm-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-xl shadow-md transition duration-300 transform hover:scale-105 active:scale-95">Conferma</button>
+                    <button id="cancel-delete-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-xl shadow-md transition duration-300 transform hover:scale-105 active:scale-95">Annulla</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Modale per visualizzare gli esercizi di una sessione -->
-        <div id="exercises-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-gray-900 bg-opacity-75">
-            <div class="bg-gray-800 p-6 rounded-2xl shadow-xl max-w-lg w-full border-t-2 border-red-600/30">
+        <div id="exercises-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900 bg-opacity-75 hidden">
+            <div class="modal-scroll bg-gray-800 p-6 rounded-2xl shadow-xl max-w-lg w-full border-t-2 border-red-600/30">
                 <div class="flex justify-between items-start mb-4">
                     <h3 id="modal-session-title" class="text-xl font-semibold text-gray-100">Dettagli Sessione</h3>
                     <button id="close-exercises-modal" class="text-gray-400 hover:text-gray-100">&times;</button>
                 </div>
                 <div id="exercises-content">
+                    <button id="delete-session-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-xl shadow-md mb-4 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                        Elimina Allenamento
+                    </button>
                     <button id="add-exercise-to-past-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl shadow-md mb-4 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
                         Aggiungi Esercizio
                     </button>
@@ -239,7 +257,7 @@
         </div>
 
         <!-- Modale per la modifica di un esercizio -->
-        <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-gray-900 bg-opacity-75">
+        <div id="edit-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900 bg-opacity-75 hidden">
             <div class="modal-scroll bg-gray-800 p-6 rounded-2xl shadow-xl max-w-lg w-full border-t-2 border-red-600/30">
                 <div class="flex justify-between items-start mb-4">
                     <h3 class="text-xl font-semibold text-gray-100">Modifica Esercizio</h3>
@@ -298,7 +316,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp, setDoc, doc, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp, setDoc, doc, deleteDoc, updateDoc, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         setLogLevel('debug');
@@ -351,12 +369,19 @@
         const modalTitleEl = document.getElementById('modal-title');
         const modalMessageEl = document.getElementById('modal-message');
         const closeMessageModalBtn = document.getElementById('close-message-modal');
+        
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        const closeConfirmModalBtn = document.getElementById('close-confirm-modal');
+        let sessionToDeleteId = null;
 
         const exercisesModal = document.getElementById('exercises-modal');
         const modalSessionTitleEl = document.getElementById('modal-session-title');
         const exercisesListEl = document.getElementById('exercises-list');
         const closeExercisesModalBtn = document.getElementById('close-exercises-modal');
         const addExerciseToPastBtn = document.getElementById('add-exercise-to-past-btn');
+        const deleteSessionBtn = document.getElementById('delete-session-btn');
         const addExerciseToPastFormContainer = document.getElementById('add-exercise-to-past-form-container');
         const backToExercisesBtn = document.getElementById('back-to-exercises-btn');
         const addExerciseToPastForm = document.getElementById('add-exercise-to-past-form');
@@ -935,6 +960,7 @@
                 exercisesModal.classList.remove('flex');
                 exercisesModal.classList.add('hidden');
                 showMessage("Successo", "Esercizio modificato con successo!");
+                handleSessionClick({currentTarget: {dataset: {id: sessionId}}});
             } catch (error) {
                 console.error("Errore durante la modifica dell'esercizio:", error);
                 showMessage("Errore", "Si è verificato un errore durante la modifica dell'esercizio.");
@@ -954,6 +980,7 @@
                 exercisesModal.classList.remove('flex');
                 exercisesModal.classList.add('hidden');
                 showMessage("Eliminato", "Esercizio eliminato con successo.");
+                handleSessionClick({currentTarget: {dataset: {id: sessionId}}});
             } catch (error) {
                 console.error("Errore nell'eliminare l'esercizio:", error);
                 showMessage("Errore", "Si è verificato un errore durante l'eliminazione.");
@@ -962,6 +989,39 @@
             }
         };
         
+        const deleteSessionAndAllExercises = async (sessionId) => {
+            if (!sessionId) return;
+            showLoader();
+
+            try {
+                const sessionRef = doc(db, sessionsCollectionPath(userId), sessionId);
+                const exercisesRef = collection(db, exercisesCollectionPath(userId, sessionId));
+
+                await runTransaction(db, async (transaction) => {
+                    // First, delete all exercises in the subcollection
+                    const exercisesSnapshot = await getDocs(exercisesRef);
+                    exercisesSnapshot.forEach((exerciseDoc) => {
+                        transaction.delete(exerciseDoc.ref);
+                    });
+
+                    // Then, delete the session document
+                    transaction.delete(sessionRef);
+                });
+
+                confirmModal.classList.remove('flex');
+                confirmModal.classList.add('hidden');
+                exercisesModal.classList.remove('flex');
+                exercisesModal.classList.add('hidden');
+                showMessage("Eliminato", "L'allenamento è stato eliminato con successo.");
+                loadHistory(); // Ricarica la cronologia dopo l'eliminazione
+            } catch (error) {
+                console.error("Errore nell'eliminare l'allenamento completo:", error);
+                showMessage("Errore", "Si è verificato un errore durante l'eliminazione completa dell'allenamento.");
+            } finally {
+                hideLoader();
+            }
+        };
+
         addExerciseToPastBtn.addEventListener('click', () => {
             exercisesListEl.classList.add('hidden');
             addExerciseToPastFormContainer.classList.remove('hidden');
@@ -1018,6 +1078,7 @@
                 addExerciseToPastFormContainer.classList.add('hidden');
                 exercisesListEl.classList.remove('hidden');
                 showMessage("Successo", "Esercizio aggiunto alla sessione passata!");
+                handleSessionClick({currentTarget: {dataset: {id: sessionId}}});
             } catch (error) {
                 console.error("Errore nell'aggiungere l'esercizio:", error);
                 showMessage("Errore", "Si è verificato un errore durante il salvataggio.");
@@ -1108,6 +1169,27 @@
                 hideLoader();
             }
         });
+        
+        deleteSessionBtn.addEventListener('click', () => {
+            sessionToDeleteId = pastSessionIdInput.value;
+            confirmModal.classList.remove('hidden');
+            confirmModal.classList.add('flex');
+        });
+
+        confirmDeleteBtn.addEventListener('click', () => {
+            deleteSessionAndAllExercises(sessionToDeleteId);
+        });
+
+        cancelDeleteBtn.addEventListener('click', () => {
+            confirmModal.classList.remove('flex');
+            confirmModal.classList.add('hidden');
+        });
+
+        closeConfirmModalBtn.addEventListener('click', () => {
+             confirmModal.classList.remove('flex');
+            confirmModal.classList.add('hidden');
+        });
+
     </script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
