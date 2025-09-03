@@ -28,6 +28,10 @@
             height: 100%;
             background-color: rgba(17, 24, 39, 0.85); /* Dark overlay */
         }
+        .modal-scroll {
+            max-height: 90vh; /* Imposta l'altezza massima del modale */
+            overflow-y: auto; /* Abilita lo scorrimento verticale */
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center p-4 md:p-8 body-bg">
@@ -42,8 +46,36 @@
         
         <div id="auth-status" class="text-center text-sm mb-4 text-gray-500"></div>
 
+        <!-- Auth View -->
+        <div id="auth-view" class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-[1.01] border-t-2 border-red-600/30">
+            <h2 class="text-2xl font-semibold mb-2 text-gray-200 text-center">Accedi o Registrati</h2>
+            <form id="auth-form" class="space-y-4">
+                <div>
+                    <label for="auth-email" class="block text-sm font-medium text-gray-400">Email</label>
+                    <input type="email" id="auth-email" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500" placeholder="tua@email.it" required>
+                </div>
+                <div>
+                    <label for="auth-password" class="block text-sm font-medium text-gray-400">Password</label>
+                    <input type="password" id="auth-password" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500" placeholder="password" required>
+                </div>
+                <button type="submit" id="auth-login-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                    Accedi
+                </button>
+                <p class="text-center text-gray-400">oppure</p>
+                <button type="button" id="auth-register-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                    Registrati
+                </button>
+            </form>
+            <div class="mt-6 border-t border-gray-700 pt-6">
+                 <p class="text-center text-gray-400 mb-4">Non vuoi registrarti?</p>
+                 <button type="button" id="auth-anon-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                    Prova l'app senza registrazione
+                </button>
+            </div>
+        </div>
+
         <!-- Home View -->
-        <div id="home-view" class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-[1.01] border-t-2 border-red-600/30">
+        <div id="home-view" class="hidden bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl transition-all duration-300 transform hover:scale-[1.01] border-t-2 border-red-600/30">
             <h2 class="text-2xl font-semibold mb-2 text-gray-200 text-center">Benvenuto!</h2>
             <div id="daily-quote" class="text-center text-gray-400 mb-6"></div>
             <div class="space-y-4">
@@ -52,6 +84,9 @@
                 </button>
                 <button id="home-history-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
                     Visualizza cronologia
+                </button>
+                <button id="home-logout-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                    Logout
                 </button>
             </div>
         </div>
@@ -179,8 +214,8 @@
                              <div id="past-sets-container" class="space-y-2 p-4 border border-gray-700 rounded-lg">
                                 <h4 class="text-md font-semibold text-gray-200 mb-2">Serie</h4>
                                 <div class="flex items-center space-x-2">
-                                    <input type="number" step="0.5" id="past-weight" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Peso" required>
-                                    <input type="number" id="past-reps" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Ripetizioni" required>
+                                    <input type="number" step="0.5" id="past-weight" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Peso">
+                                    <input type="number" id="past-reps" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Ripetizioni">
                                     <button type="button" id="past-add-set-btn" class="w-1/3 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-md transition transform hover:scale-105">Aggiungi Serie</button>
                                 </div>
                                 <ul id="past-sets-list" class="space-y-2 text-sm text-gray-300"></ul>
@@ -205,7 +240,7 @@
 
         <!-- Modale per la modifica di un esercizio -->
         <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-gray-900 bg-opacity-75">
-            <div class="bg-gray-800 p-6 rounded-2xl shadow-xl max-w-lg w-full border-t-2 border-red-600/30">
+            <div class="modal-scroll bg-gray-800 p-6 rounded-2xl shadow-xl max-w-lg w-full border-t-2 border-red-600/30">
                 <div class="flex justify-between items-start mb-4">
                     <h3 class="text-xl font-semibold text-gray-100">Modifica Esercizio</h3>
                     <button id="close-edit-modal" class="text-gray-400 hover:text-gray-100">&times;</button>
@@ -221,8 +256,8 @@
                     <div id="edit-sets-container" class="space-y-2 p-4 border border-gray-700 rounded-lg">
                         <h4 class="text-md font-semibold text-gray-200 mb-2">Serie</h4>
                         <div class="flex items-center space-x-2">
-                            <input type="number" step="0.5" id="edit-weight" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Peso" required>
-                            <input type="number" id="edit-reps" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Ripetizioni" required>
+                            <input type="number" step="0.5" id="edit-weight" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Peso">
+                            <input type="number" id="edit-reps" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Ripetizioni">
                             <button type="button" id="edit-add-set-btn" class="w-1/3 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-md transition transform hover:scale-105">Aggiungi Serie</button>
                         </div>
                         <ul id="edit-sets-list" class="space-y-2 text-sm text-gray-300"></ul>
@@ -262,7 +297,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp, setDoc, doc, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -277,18 +312,26 @@
         let currentSessionId = null;
         let recentExercises = {};
         let historyUnsubscribe = null;
+        let pendingWorkout = null;
 
-     	const firebaseConfig = {
-    apiKey: "AIzaSyAuZfMVOWJSV4og8CrvsGb8cKskzW3kfV8",
-    authDomain: "gym-tracker-5ff1d.firebaseapp.com",
-    projectId: "gym-tracker-5ff1d",
-    storageBucket: "gym-tracker-5ff1d.firebasestorage.app",
-    messagingSenderId: "249842399106",
-    appId: "1:249842399106:web:be361fc20cec812e89c19b",
-    measurementId: "G-YXFTKCB77D"
-  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyAuZfMVOWJSV4og8CrvsGb8cKskzW3kfV8",
+            authDomain: "gym-tracker-5ff1d.firebaseapp.com",
+            projectId: "gym-tracker-5ff1d",
+            storageBucket: "gym-tracker-5ff1d.firebasestorage.app",
+            messagingSenderId: "249842399106",
+            appId: "1:249842399106:web:be361fc20cec812e89c19b",
+            measurementId: "G-YXFTKCB77D"
+        };
 		
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const authViewEl = document.getElementById('auth-view');
+        const authForm = document.getElementById('auth-form');
+        const authEmailInput = document.getElementById('auth-email');
+        const authPasswordInput = document.getElementById('auth-password');
+        const authLoginBtn = document.getElementById('auth-login-btn');
+        const authRegisterBtn = document.getElementById('auth-register-btn');
+        const authAnonBtn = document.getElementById('auth-anon-btn');
+        const homeLogoutBtn = document.getElementById('home-logout-btn');
 
         const authStatusEl = document.getElementById('auth-status');
         const homeViewEl = document.getElementById('home-view');
@@ -371,9 +414,8 @@
             messageModal.classList.add('hidden');
         });
 
-        // Funzione per cambiare la vista
         const showView = (viewId) => {
-            const views = [homeViewEl, workoutViewEl, historyViewEl];
+            const views = [homeViewEl, workoutViewEl, historyViewEl, authViewEl];
             views.forEach(view => {
                 view.classList.add('hidden');
             });
@@ -436,7 +478,6 @@
         const sessionsCollectionPath = (uid) => `users/${uid}/sessions`;
         const exercisesCollectionPath = (uid, sessionId) => `users/${uid}/sessions/${sessionId}/exercises`;
 
-        // Inizializza Firebase
         if (Object.keys(firebaseConfig).length > 0) {
             try {
                 const app = initializeApp(firebaseConfig);
@@ -451,31 +492,23 @@
             showMessage("Errore", "Configurazione Firebase mancante. Vai su Firebase Console per ottenerla.");
         }
 
-        // Gestione dell'autenticazione
+        const handleAuthState = async (user) => {
+            if (user) {
+                userId = user.uid;
+                authStatusEl.textContent = `Autenticato come utente: ${userId}`;
+                await fetchRecentExercises(); 
+                getDailyQuote();
+                showView('home-view');
+            } else {
+                showView('auth-view');
+                authStatusEl.textContent = '';
+            }
+            hideLoader();
+        };
+
         if (auth) {
             showLoader();
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    authStatusEl.textContent = `Autenticato come utente: ${userId}`;
-                    await fetchRecentExercises(); // Fetch recent exercises on auth
-                    getDailyQuote();
-                    showView('home-view');
-                } else {
-                    try {
-                        const authResult = await signInAnonymously(auth);
-                        userId = authResult.user.uid;
-                        authStatusEl.textContent = `Autenticato come utente: ${userId}`;
-                        await fetchRecentExercises();
-                        getDailyQuote();
-                        showView('home-view');
-                    } catch (error) {
-                        console.error("Errore durante l'autenticazione:", error);
-                        showMessage("Errore", "Si è verificato un problema di accesso. Controlla la console.");
-                    }
-                }
-                hideLoader();
-            });
+            onAuthStateChanged(auth, handleAuthState);
         }
 
         const loadHistory = async () => {
@@ -499,12 +532,12 @@
                      const sessions = [];
                      querySnapshot.forEach((doc) => {
                         const data = doc.data();
-                        if (data.timestamp) { // Ensure the timestamp is valid
+                        if (data.timestamp) { 
                             sessions.push({ id: doc.id, ...data });
                         }
                     });
 
-                    sessionHistoryEl.innerHTML = ''; // Clear and re-render
+                    sessionHistoryEl.innerHTML = '';
                     
                     if (sessions.length === 0) {
                         noHistoryEl.classList.remove('hidden');
@@ -649,7 +682,6 @@
         pastAddSetBtn.addEventListener('click', () => addSet(pastWeightInput, pastRepsInput, pastSets, pastSetsList, pastVolumeInput));
         editAddSetBtn.addEventListener('click', () => addSet(editWeightInput, editRepsInput, editSets, editSetsList, editVolumeInput));
 
-        // Main form event listeners
         muscleGroupSelect.addEventListener('change', (e) => {
             populateExerciseDropdown(exerciseSelect, newExerciseInput, e.target.value);
             handleExerciseSelection(exerciseSelect, newExerciseInput, e.target.value, weightInput, repsInput, setsList, volumeInput, currentSets);
@@ -659,7 +691,6 @@
             handleExerciseSelection(exerciseSelect, newExerciseInput, muscleGroupSelect.value, weightInput, repsInput, setsList, volumeInput, currentSets);
         });
 
-        // Past form event listeners
         pastMuscleGroupInput.addEventListener('change', (e) => {
             populateExerciseDropdown(pastExerciseSelect, pastNewExerciseInput, e.target.value);
             handleExerciseSelection(pastExerciseSelect, pastNewExerciseInput, e.target.value, pastWeightInput, pastRepsInput, pastSetsList, pastVolumeInput, pastSets);
@@ -669,7 +700,6 @@
             handleExerciseSelection(pastExerciseSelect, pastNewExerciseInput, pastMuscleGroupInput.value, pastWeightInput, pastRepsInput, pastSetsList, pastVolumeInput, pastSets);
         });
 
-        // Funzione per iniziare un allenamento
         homeStartBtn.addEventListener('click', () => {
             currentSessionId = null;
             showView('workout-view');
@@ -680,13 +710,14 @@
             volumeInput.value = '';
         });
 
-        // Funzione per tornare indietro senza salvare
         workoutBackBtn.addEventListener('click', () => {
+            if (currentSessionId) {
+                showMessage("Attenzione", "La sessione di allenamento è già iniziata. Se torni indietro, gli esercizi non verranno salvati.");
+            }
             currentSessionId = null;
             showView('home-view');
         });
 
-        // Funzione per aggiungere un esercizio alla sessione corrente
         exerciseForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -737,7 +768,6 @@
             }
         });
         
-        // Funzione per visualizzare gli esercizi di una sessione
         const handleSessionClick = async (e) => {
             let sessionId = e.currentTarget.dataset.id;
             if (!sessionId) {
@@ -826,7 +856,6 @@
             }
         };
 
-        // Gestisce la chiusura dei modali
         closeExercisesModalBtn.addEventListener('click', () => {
             exercisesModal.classList.remove('flex');
             exercisesModal.classList.add('hidden');
@@ -836,7 +865,6 @@
             editModal.classList.add('hidden');
         });
 
-        // Funzione per la modifica di un esercizio
         const handleEdit = async (e) => {
             const sessionId = e.target.dataset.sessionId;
             const exerciseId = e.target.dataset.exerciseId;
@@ -875,7 +903,6 @@
             }
         };
 
-        // Funzione per salvare le modifiche di un esercizio
         editWorkoutForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const sessionId = editSessionIdInput.value;
@@ -916,7 +943,6 @@
             }
         });
 
-        // Funzione per eliminare un esercizio
         const handleDelete = async (e) => {
             const sessionId = e.target.dataset.sessionId;
             const exerciseId = e.target.dataset.exerciseId;
@@ -936,7 +962,6 @@
             }
         };
         
-        // Nuovi Event Listeners per la gestione dell'aggiunta di esercizi passati
         addExerciseToPastBtn.addEventListener('click', () => {
             exercisesListEl.classList.add('hidden');
             addExerciseToPastFormContainer.classList.remove('hidden');
@@ -1001,13 +1026,87 @@
             }
         });
 
-        // Event listener per la navigazione
         homeHistoryBtn.addEventListener('click', () => {
             showView('history-view');
             loadHistory();
         });
         historyBackBtn.addEventListener('click', () => {
             showView('home-view');
+        });
+        
+        homeLogoutBtn.addEventListener('click', async () => {
+            showLoader();
+            try {
+                await signOut(auth);
+                showMessage("Logout", "Sei stato disconnesso con successo.");
+                showView('auth-view');
+            } catch (error) {
+                console.error("Errore durante il logout:", error);
+                showMessage("Errore", "Si è verificato un problema durante il logout.");
+            } finally {
+                hideLoader();
+            }
+        });
+
+        authAnonBtn.addEventListener('click', async () => {
+            showLoader();
+            try {
+                await signInAnonymously(auth);
+                showMessage("Benvenuto", "Accedi in modalità anonima. I tuoi dati saranno salvati su questo dispositivo.");
+            } catch (error) {
+                console.error("Errore durante l'accesso anonimo:", error);
+                showMessage("Errore", "Si è verificato un problema durante l'accesso anonimo.");
+            } finally {
+                hideLoader();
+            }
+        });
+
+        authRegisterBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = authEmailInput.value;
+            const password = authPasswordInput.value;
+             if (!email.includes('@') || !email.includes('.')) {
+                showMessage("Errore", "L'email deve essere in un formato valido.");
+                return;
+            }
+             if (password.length < 6) {
+                showMessage("Errore", "La password deve contenere almeno 6 caratteri.");
+                return;
+            }
+            showLoader();
+            try {
+                 await createUserWithEmailAndPassword(auth, email, password);
+                 showMessage("Registrazione", "Registrazione completata con successo! Ora puoi accedere.");
+            } catch (error) {
+                console.error("Errore durante la registrazione:", error);
+                showMessage("Errore", "Si è verificato un errore durante la registrazione. Riprova con un'altra email o password.");
+            } finally {
+                hideLoader();
+            }
+        });
+
+        authLoginBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = authEmailInput.value;
+            const password = authPasswordInput.value;
+             if (!email.includes('@') || !email.includes('.')) {
+                showMessage("Errore", "L'email deve essere in un formato valido.");
+                return;
+            }
+             if (password.length < 6) {
+                showMessage("Errore", "La password deve contenere almeno 6 caratteri.");
+                return;
+            }
+            showLoader();
+            try {
+                 await signInWithEmailAndPassword(auth, email, password);
+                 showMessage("Accesso", "Accesso completato con successo!");
+            } catch (error) {
+                 console.error("Errore durante l'accesso:", error);
+                showMessage("Errore", "Errore durante l'accesso. Controlla email e password e riprova.");
+            } finally {
+                hideLoader();
+            }
         });
     </script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
