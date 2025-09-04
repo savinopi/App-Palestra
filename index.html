@@ -13,7 +13,7 @@
             font-family: 'Inter', sans-serif;
         }
         .body-bg {
-            background-image: url('https://github.com/savinopi/App-Palestra/blob/main/Background.jpg?raw=true');
+            background-image: url('https://raw.githubusercontent.com/savinopi/App-Palestra/main/Background.jpg?raw=true');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -54,9 +54,14 @@
                     <label for="auth-email" class="block text-sm font-medium text-gray-400">Email</label>
                     <input type="email" id="auth-email" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500" placeholder="tua@email.it" required>
                 </div>
-                <div>
+                <div class="relative">
                     <label for="auth-password" class="block text-sm font-medium text-gray-400">Password</label>
-                    <input type="password" id="auth-password" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500" placeholder="password" required>
+                    <input type="password" id="auth-password" class="mt-1 block w-full px-4 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500" placeholder="password" required>
+                    <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 top-5" aria-label="Mostra/Nascondi password">
+                        <!-- Eye icon SVG -->
+                        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg id="eye-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off hidden"><path d="M10.585 10.585a2 2 0 0 0 2.829 2.829"/><path d="M16.681 16.681A7.636 7.636 0 0 1 12 17c-3.6 0-6.6-2-9-5 1.5-1.9 4-3.2 6.5-3.7l2.288 2.288"/><path d="M2 12s3-7 10-7c.767 0 1.523.115 2.25.336"/><path d="M16 17a6.613 6.613 0 0 0 4-5c-1.5-1.9-4-3.2-6.5-3.7"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                    </button>
                 </div>
                 <button type="submit" id="auth-login-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
                     Accedi
@@ -127,8 +132,8 @@
                     <div id="sets-container" class="space-y-2 p-4 border border-gray-700 rounded-lg">
                         <h4 class="text-md font-semibold text-gray-200 mb-2">Serie</h4>
                         <div class="flex items-center space-x-2">
-                            <input type="number" step="0.5" id="weight" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Peso" required>
-                            <input type="number" id="reps" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Ripetizioni" required>
+                            <input type="number" step="0.5" id="weight" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Peso">
+                            <input type="number" id="reps" class="w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm text-gray-100" placeholder="Ripetizioni">
                             <button type="button" id="add-set-btn" class="w-1/3 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-md transition transform hover:scale-105">Aggiungi Serie</button>
                         </div>
                         <ul id="sets-list" class="space-y-2 text-sm text-gray-300"></ul>
@@ -346,6 +351,10 @@
         const authForm = document.getElementById('auth-form');
         const authEmailInput = document.getElementById('auth-email');
         const authPasswordInput = document.getElementById('auth-password');
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const eyeIcon = document.getElementById('eye-icon');
+        const eyeOffIcon = document.getElementById('eye-off-icon');
+
         const authLoginBtn = document.getElementById('auth-login-btn');
         const authRegisterBtn = document.getElementById('auth-register-btn');
         const authAnonBtn = document.getElementById('auth-anon-btn');
@@ -743,55 +752,72 @@
             showView('home-view');
         });
 
-        exerciseForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            let exerciseName = exerciseSelect.value;
-            if (exerciseName === 'new') {
-                exerciseName = newExerciseInput.value.trim();
-            }
 
-            const muscleGroup = muscleGroupSelect.value;
-            const notes = notesInput.value.trim();
-            const totalVolume = currentSets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
 
-            if (!exerciseName || !muscleGroup || currentSets.length === 0) {
-                showMessage("Errore", "Per favor, compila tutti i campi obbligatori e aggiungi almeno una serie.");
-                return;
-            }
+      exerciseForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-            const newExercise = {
-                exercise: exerciseName,
-                muscleGroup,
-                sets: currentSets,
-                volume: totalVolume,
-                notes,
+    let exerciseName = exerciseSelect.value;
+    if (exerciseName === 'new') {
+        exerciseName = newExerciseInput.value.trim();
+    }
+    const muscleGroup = muscleGroupSelect.value;
+    const notes = notesInput.value.trim();
+    const totalVolume = currentSets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
+
+    // PATCH: log di debug!
+    console.log("[submit] currentSets:", currentSets);
+    console.log("[submit] newExercise:", {
+        exercise: exerciseName,
+        muscleGroup,
+        sets: currentSets,
+        volume: totalVolume,
+        notes
+    });
+
+    if (!exerciseName || !muscleGroup || currentSets.length === 0) {
+        showMessage("Errore", "Per favor, compila tutti i campi obbligatori e aggiungi almeno una serie.");
+        return;
+    }
+
+    const newExercise = {
+        exercise: exerciseName,
+        muscleGroup,
+        sets: currentSets,
+        volume: totalVolume,
+        notes,
+        timestamp: serverTimestamp(),
+    };
+
+    showLoader();
+    try {
+        if (!currentSessionId) {
+            const newSessionRef = await addDoc(collection(db, sessionsCollectionPath(userId)), {
                 timestamp: serverTimestamp(),
-            };
+            });
+            currentSessionId = newSessionRef.id;
+        }
 
-            showLoader();
-            try {
-                if (!currentSessionId) {
-                    const newSessionRef = await addDoc(collection(db, sessionsCollectionPath(userId)), {
-                        timestamp: serverTimestamp(),
-                    });
-                    currentSessionId = newSessionRef.id;
-                }
+        await addDoc(collection(db, exercisesCollectionPath(userId, currentSessionId)), newExercise);
 
-                await addDoc(collection(db, exercisesCollectionPath(userId, currentSessionId)), newExercise);
-                exerciseForm.reset();
-                currentSets = [];
-                setsList.innerHTML = '';
-                volumeInput.value = '';
-                await fetchRecentExercises(); 
-                showMessage("Successo", "Esercizio aggiunto con successo!");
-            } catch (error) {
-                console.error("Errore nell'aggiungere l'esercizio:", error);
-                showMessage("Errore", "Si è verificato un errore durante il salvataggio dell'esercizio.");
-            } finally {
-                hideLoader();
-            }
-        });
+        // PATCH: reset solo i campi utili!
+        newExerciseInput.value = '';
+        notesInput.value = '';
+        weightInput.value = '';
+        repsInput.value = '';
+        volumeInput.value = '';
+        currentSets = [];
+        setsList.innerHTML = '';
+
+        await fetchRecentExercises();
+        showMessage("Successo", "Esercizio aggiunto con successo!");
+    } catch (error) {
+        console.error("Errore nell'aggiungere l'esercizio:", error);
+        showMessage("Errore", "Si è verificato un errore durante il salvataggio dell'esercizio.");
+    } finally {
+        hideLoader();
+    }
+                });
         
         const handleSessionClick = async (e) => {
             let sessionId = e.currentTarget.dataset.id;
@@ -815,7 +841,7 @@
                 querySnapshot.forEach(doc => {
                     exercises.push({ id: doc.id, ...doc.data() });
                 });
-
+                console.log("[render] esercizi caricati:", exercises);
                 if (exercises.length === 0) {
                     exercisesListEl.innerHTML = '<p class="text-center text-gray-400">Nessun esercizio registrato per questa sessione.</p>';
                 } else {
@@ -998,13 +1024,11 @@
                 const exercisesRef = collection(db, exercisesCollectionPath(userId, sessionId));
 
                 await runTransaction(db, async (transaction) => {
-                    // First, delete all exercises in the subcollection
                     const exercisesSnapshot = await getDocs(exercisesRef);
                     exercisesSnapshot.forEach((exerciseDoc) => {
                         transaction.delete(exerciseDoc.ref);
                     });
 
-                    // Then, delete the session document
                     transaction.delete(sessionRef);
                 });
 
@@ -1013,7 +1037,7 @@
                 exercisesModal.classList.remove('flex');
                 exercisesModal.classList.add('hidden');
                 showMessage("Eliminato", "L'allenamento è stato eliminato con successo.");
-                loadHistory(); // Ricarica la cronologia dopo l'eliminazione
+                loadHistory(); 
             } catch (error) {
                 console.error("Errore nell'eliminare l'allenamento completo:", error);
                 showMessage("Errore", "Si è verificato un errore durante l'eliminazione completa dell'allenamento.");
@@ -1190,10 +1214,16 @@
             confirmModal.classList.add('hidden');
         });
 
+        togglePasswordBtn.addEventListener('click', () => {
+            const type = authPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            authPasswordInput.setAttribute('type', type);
+            eyeIcon.classList.toggle('hidden');
+            eyeOffIcon.classList.toggle('hidden');
+        });
+
     </script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
 </body>
 </html>
-
