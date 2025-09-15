@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-	<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/savinopi/App-Palestra/main/square_icon.png">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/savinopi/App-Palestra/main/square_icon.png">
 	<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/savinopi/App-Palestra/main/Icon_png_crop.png">
     <style>
         body {
@@ -25,7 +25,7 @@
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
+            left: 0;                   
             width: 100%;
             height: 100%;
             background-color: rgba(17, 24, 39, 0.85); /* Dark overlay */
@@ -91,6 +91,9 @@
                 </button>
                 <button id="home-history-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
                     Visualizza cronologia
+                </button>
+                <button id="home-records-btn" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95 mt-2">
+                    Record Personali
                 </button>
                 <button id="home-logout-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
                     Logout
@@ -168,11 +171,11 @@
         </div>
         
         <!-- Modale per i messaggi -->
-        <div id="message-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900 bg-opacity-75 hidden">
+        <div id="message-modal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-gray-900 bg-opacity-75 hidden">
             <div class="bg-gray-800 p-6 rounded-2xl shadow-xl max-w-sm w-full border-t-2 border-red-600/30">
                 <div class="flex justify-between items-start mb-4">
                     <h3 id="modal-title" class="text-xl font-semibold text-gray-100"></h3>
-                    <button id="close-message-modal" class="text-gray-400 hover:text-gray-100">&times;</button>
+                    <button id="close-message-modal" class="text-gray-400 hover:text-gray-100 text-3xl leading-none focus:outline-none focus:ring-2 focus:ring-red-500 rounded">&times;</button>
                 </div>
                 <p id="modal-message" class="text-gray-300"></p>
             </div>
@@ -183,7 +186,7 @@
             <div class="bg-gray-800 p-6 rounded-2xl shadow-xl max-w-sm w-full border-t-2 border-red-600/30">
                 <div class="flex justify-between items-start mb-4">
                     <h3 class="text-xl font-semibold text-gray-100">Conferma Eliminazione</h3>
-                    <button id="close-confirm-modal" class="text-gray-400 hover:text-gray-100">&times;</button>
+                    <button id="close-confirm-modal" class="text-gray-400 hover:text-gray-100 text-3xl leading-none focus:outline-none focus:ring-2 focus:ring-red-500 rounded">&times;</button>
                 </div>
                 <p id="confirm-message" class="text-gray-300 mb-4">Sei sicuro di voler eliminare questo allenamento? Questa azione non può essere annullata.</p>
                 <div class="flex justify-end space-x-4">
@@ -198,7 +201,7 @@
             <div class="modal-scroll bg-gray-800 p-6 rounded-2xl shadow-xl max-w-lg w-full border-t-2 border-red-600/30">
                 <div class="flex justify-between items-start mb-4">
                     <h3 id="modal-session-title" class="text-xl font-semibold text-gray-100">Dettagli Sessione</h3>
-                    <button id="close-exercises-modal" class="text-gray-400 hover:text-gray-100">&times;</button>
+                    <button id="close-exercises-modal" class="text-gray-400 hover:text-gray-100 text-3xl leading-none focus:outline-none focus:ring-2 focus:ring-red-500 rounded">&times;</button>
                 </div>
                 <div id="exercises-content">
                     <button id="delete-session-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-xl shadow-md mb-4 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
@@ -234,7 +237,7 @@
                                 <select id="past-exerciseSelect" class="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100" required>
                                     <option value="">Seleziona...</option>
                                 </select>
-                                <input type="text" id="past-newExerciseInput" class="hidden mt-2 w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500" placeholder="Nuovo esercizio" required>
+                                <input type="text" id="past-newExerciseInput" class="hidden mt-2 w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-gray-100 placeholder:text-gray-500" placeholder="Nuovo esercizio">
                             </div>
                              <div id="past-sets-container" class="space-y-2 p-4 border border-gray-700 rounded-lg">
                                 <h4 class="text-md font-semibold text-gray-200 mb-2">Serie</h4>
@@ -268,7 +271,7 @@
             <div class="modal-scroll bg-gray-800 p-6 rounded-2xl shadow-xl max-w-lg w-full border-t-2 border-red-600/30">
                 <div class="flex justify-between items-start mb-4">
                     <h3 class="text-xl font-semibold text-gray-100">Modifica Esercizio</h3>
-                    <button id="close-edit-modal" class="text-gray-400 hover:text-gray-100">&times;</button>
+                    <button id="close-edit-modal" class="text-gray-400 hover:text-gray-100 text-3xl leading-none focus:outline-none focus:ring-2 focus:ring-red-500 rounded">&times;</button>
                 </div>
                 <form id="edit-workout-form" class="space-y-4">
                     <input type="hidden" id="edit-session-id">
@@ -318,6 +321,35 @@
             </div>
         </div>
 
+        <!-- Nuova sezione Record Personali -->
+        <div id="records-view" class="hidden bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl border-t-2 border-yellow-500/30">
+            <button id="records-back-btn" class="mb-6 text-gray-400 hover:text-gray-200 transition-colors">&larr; Torna alla Home</button>
+            <h2 class="text-2xl font-semibold mb-4 text-yellow-400 text-center">Record Personali</h2>
+            
+            <!-- Vista di scelta -->
+            <div id="records-choice-view">
+                <p class="text-center text-gray-400 mb-6">Scegli la categoria di record che vuoi visualizzare.</p>
+                <div class="space-y-4">
+                    <button id="records-max-weight-btn" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                        Massimale per singola serie
+                    </button>
+                    <button id="records-total-volume-exercise-btn" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                        Volume Totale per Esercizio
+                    </button>
+                    <button id="records-total-volume-muscle-group-btn" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
+                        Volume Totale per Gruppo Muscolare
+                    </button>
+                </div>
+            </div>
+
+            <!-- Vista di visualizzazione dei record -->
+            <div id="records-display-view" class="hidden">
+                <button id="records-display-back-btn" class="mb-4 text-gray-400 hover:text-gray-200 transition-colors">&larr; Torna alla scelta</button>
+                <h3 id="records-display-title" class="text-xl font-semibold mb-4 text-yellow-400 text-center"></h3>
+                <div id="records-list" class="space-y-6"></div>
+                <div id="no-records" class="hidden text-center text-gray-500 mt-4">Nessun record trovato.</div>
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -366,6 +398,8 @@
         const homeViewEl = document.getElementById('home-view');
         const homeStartBtn = document.getElementById('home-start-btn');
         const homeHistoryBtn = document.getElementById('home-history-btn');
+        const homeRecordsBtn = document.getElementById('home-records-btn');
+    
         const workoutViewEl = document.getElementById('workout-view');
         const workoutBackBtn = document.getElementById('workout-back-btn');
         const historyViewEl = document.getElementById('history-view');
@@ -382,10 +416,27 @@
         const closeMessageModalBtn = document.getElementById('close-message-modal');
         
         const confirmModal = document.getElementById('confirm-modal');
-        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const confirmMessageEl = document.getElementById('confirm-message');
+        const confirmTitleEl = confirmModal.querySelector('h3');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn'); // This button is now generic for confirmation
         const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
         const closeConfirmModalBtn = document.getElementById('close-confirm-modal');
-        let sessionToDeleteId = null;
+        let confirmAction = null;
+
+        const showConfirmationModal = (title, message, confirmText, onConfirm) => {
+            confirmTitleEl.textContent = title;
+            confirmMessageEl.textContent = message;
+            confirmDeleteBtn.textContent = confirmText;
+            confirmAction = onConfirm;
+            confirmModal.classList.remove('hidden');
+            confirmModal.classList.add('flex');
+        };
+
+        const hideConfirmModal = () => {
+            confirmModal.classList.remove('flex');
+            confirmModal.classList.add('hidden');
+            confirmAction = null;
+        };
 
         const exercisesModal = document.getElementById('exercises-modal');
         const modalSessionTitleEl = document.getElementById('modal-session-title');
@@ -451,7 +502,7 @@
         });
 
         const showView = (viewId) => {
-            const views = [homeViewEl, workoutViewEl, historyViewEl, authViewEl];
+            const views = [homeViewEl, workoutViewEl, historyViewEl, authViewEl, document.getElementById('records-view')];
             views.forEach(view => {
                 view.classList.add('hidden');
             });
@@ -528,10 +579,17 @@
             showMessage("Errore", "Configurazione Firebase mancante. Vai su Firebase Console per ottenerla.");
         }
 
+        // Definisci handleAuthState PRIMA!
         const handleAuthState = async (user) => {
             if (user) {
                 userId = user.uid;
-                authStatusEl.textContent = `Autenticato come utente: ${userId}`;
+                if (user.isAnonymous) {
+                    authStatusEl.textContent = `Modalità di prova: i dati non sono permanenti. Registrati per salvarli.`;
+                    homeRecordsBtn.classList.add('hidden');
+                } else {
+                    authStatusEl.textContent = `Autenticato come: ${user.email}`;
+                    homeRecordsBtn.classList.remove('hidden');
+                }
                 await fetchRecentExercises(); 
                 getDailyQuote();
                 showView('home-view');
@@ -542,10 +600,245 @@
             hideLoader();
         };
 
+        // Poi chiama onAuthStateChanged
         if (auth) {
             showLoader();
             onAuthStateChanged(auth, handleAuthState);
         }
+
+        // Carica i record solo per utenti autenticati (non anonimi)
+        const recordsListEl = document.getElementById('records-list');
+        const noRecordsEl = document.getElementById('no-records');
+
+        const getAllExercisesFromHistory = async () => {
+            if (!userId) return [];
+            let allExercises = [];
+            const sessionsQuery = query(collection(db, sessionsCollectionPath(userId)), orderBy('timestamp', 'desc'));
+            const sessionsSnapshot = await getDocs(sessionsQuery);
+
+            for (const sessionDoc of sessionsSnapshot.docs) {
+                const sessionDate = new Date(sessionDoc.data().timestamp.seconds * 1000);
+                const exercisesQuery = query(collection(db, exercisesCollectionPath(userId, sessionDoc.id)));
+                const exercisesSnapshot = await getDocs(exercisesQuery);
+
+                exercisesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    allExercises.push({
+                        ...data,
+                        date: sessionDate.toLocaleDateString('it-IT'),
+                    });
+                });
+            }
+            return allExercises;
+        };
+
+        const loadTotalVolumeExerciseRecords = async () => {
+            showLoader();
+            recordsListEl.innerHTML = '';
+            noRecordsEl.classList.add('hidden');
+            
+            try {
+                const allExercises = await getAllExercisesFromHistory();
+                if (allExercises.length === 0) {
+                    noRecordsEl.classList.remove('hidden');
+                    return;
+                }
+
+                const grouped = {};
+                allExercises.forEach(ex => {
+                    const muscleGroup = ex.muscleGroup || 'Non specificato';
+                    if (!grouped[muscleGroup]) grouped[muscleGroup] = {};
+                    if (!grouped[muscleGroup][ex.exercise] || (ex.volume || 0) > (grouped[muscleGroup][ex.exercise].volume || 0)) {
+                        grouped[ex.muscleGroup][ex.exercise] = ex;
+                    }
+                });
+
+                let found = false;
+                Object.keys(grouped).sort().forEach(muscleGroup => {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.classList.add('bg-gray-700', 'p-4', 'rounded-lg', 'shadow-md', 'mb-6');
+                    groupDiv.innerHTML = `<h3 class="text-lg font-semibold text-yellow-300 mb-2">${muscleGroup}</h3>`;
+                    
+                    let hasExercisesInGroup = false;
+                    Object.keys(grouped[muscleGroup]).sort().forEach(exName => {
+                        const rec = grouped[muscleGroup][exName];
+                        found = true;
+                        hasExercisesInGroup = true;
+                        groupDiv.innerHTML += `
+                            <div class="mb-2">
+                                <div class="font-semibold text-yellow-200">${exName}</div>
+                                <div class="flex justify-between items-center py-1">
+                                    <span>${(rec.volume || 0).toLocaleString('it-IT')} kg</span>
+                                    <span class="text-gray-400 text-sm">${rec.date}</span>
+                                </div>
+                                <div class="text-sm text-gray-300 mt-1">
+                                    ${rec.sets && rec.sets.length > 0
+                                        ? rec.sets.map((set, idx) => `<div>Serie ${idx + 1}: <span class="text-white">${set.weight} kg x ${set.reps} reps</span></div>`).join('')
+                                        : '<div>Nessuna serie registrata</div>'
+                                    }
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    if (hasExercisesInGroup) {
+                        recordsListEl.appendChild(groupDiv);
+                    }
+                });
+
+                if (!found) {
+                    noRecordsEl.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error("Errore nel caricamento dei record di volume per esercizio:", error);
+                recordsListEl.innerHTML = '<p class="text-red-400">Errore nel caricamento dei record.</p>';
+            } finally {
+                hideLoader();
+            }
+        };
+
+        const loadMaxWeightRecords = async () => {
+            showLoader();
+            recordsListEl.innerHTML = '';
+            noRecordsEl.classList.add('hidden');
+
+            try {
+                const allExercises = await getAllExercisesFromHistory();
+                if (allExercises.length === 0) {
+                    noRecordsEl.classList.remove('hidden');
+                    return;
+                }
+
+                const bestSets = {};
+                allExercises.forEach(ex => {
+                    if (ex.sets && ex.sets.length > 0) {
+                        ex.sets.forEach(set => {
+                            const weight = set.weight || 0;
+                            if (!bestSets[ex.exercise] || weight > bestSets[ex.exercise].weight) {
+                                bestSets[ex.exercise] = {
+                                    weight: weight,
+                                    reps: set.reps,
+                                    exercise: ex.exercise,
+                                    muscleGroup: ex.muscleGroup || 'Non specificato',
+                                    date: ex.date
+                                };
+                            }
+                        });
+                    }
+                });
+
+                const groupedByMuscle = {};
+                Object.values(bestSets).forEach(rec => {
+                    if (!groupedByMuscle[rec.muscleGroup]) {
+                        groupedByMuscle[rec.muscleGroup] = [];
+                    }
+                    groupedByMuscle[rec.muscleGroup].push(rec);
+                });
+
+                let found = false;
+                Object.keys(groupedByMuscle).sort().forEach(muscleGroup => {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.classList.add('bg-gray-700', 'p-4', 'rounded-lg', 'shadow-md', 'mb-6');
+                    groupDiv.innerHTML = `<h3 class="text-lg font-semibold text-yellow-300 mb-2">${muscleGroup}</h3>`;
+                    
+                    groupedByMuscle[muscleGroup].sort((a, b) => a.exercise.localeCompare(b.exercise)).forEach(rec => {
+                        found = true;
+                        groupDiv.innerHTML += `
+                            <div class="mb-2">
+                                <div class="font-semibold text-yellow-200">${rec.exercise}</div>
+                                <div class="flex justify-between items-center py-1">
+                                    <span><span class="font-bold">${rec.weight} kg</span> x ${rec.reps} reps</span>
+                                    <span class="text-gray-400 text-sm">${rec.date}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    recordsListEl.appendChild(groupDiv);
+                });
+
+                if (!found) {
+                    noRecordsEl.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error("Errore nel caricamento dei record di massimale:", error);
+                recordsListEl.innerHTML = '<p class="text-red-400">Errore nel caricamento dei record.</p>';
+            } finally {
+                hideLoader();
+            }
+        };
+
+        const loadTotalVolumeMuscleGroupRecords = async () => {
+            showLoader();
+            recordsListEl.innerHTML = '';
+            noRecordsEl.classList.add('hidden');
+
+            try {
+                const sessionsQuery = query(collection(db, sessionsCollectionPath(userId)), orderBy('timestamp', 'desc'));
+                const sessionsSnapshot = await getDocs(sessionsQuery);
+
+                const sessionVolumesByGroup = {};
+
+                for (const sessionDoc of sessionsSnapshot.docs) {
+                    const sessionDate = new Date(sessionDoc.data().timestamp.seconds * 1000).toLocaleDateString('it-IT');
+                    const exercisesQuery = query(collection(db, exercisesCollectionPath(userId, sessionDoc.id)));
+                    const exercisesSnapshot = await getDocs(exercisesQuery);
+
+                    const currentSessionVolumes = {};
+                    exercisesSnapshot.forEach(exDoc => {
+                        const exData = exDoc.data();
+                        const group = exData.muscleGroup || 'Non specificato';
+                        const volume = exData.volume || 0;
+                        if (!currentSessionVolumes[group]) currentSessionVolumes[group] = 0;
+                        currentSessionVolumes[group] += volume;
+                    });
+
+                    Object.keys(currentSessionVolumes).forEach(group => {
+                        if (!sessionVolumesByGroup[group] || currentSessionVolumes[group] > sessionVolumesByGroup[group].volume) {
+                            sessionVolumesByGroup[group] = {
+                                volume: currentSessionVolumes[group],
+                                date: sessionDate
+                            };
+                        }
+                    });
+                }
+
+                let found = false;
+                if (Object.keys(sessionVolumesByGroup).length > 0) {
+                    const recordsDiv = document.createElement('div');
+                    recordsDiv.classList.add('bg-gray-700', 'p-4', 'rounded-lg', 'shadow-md');
+
+                    Object.keys(sessionVolumesByGroup).sort().forEach(group => {
+                        found = true;
+                        const rec = sessionVolumesByGroup[group];
+                        recordsDiv.innerHTML += `
+                            <div class="mb-2">
+                                <div class="font-semibold text-yellow-200">${group}</div>
+                                <div class="flex justify-between items-center py-1">
+                                    <span>${rec.volume.toLocaleString('it-IT')} kg</span>
+                                    <span class="text-gray-400 text-sm">${rec.date}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    recordsListEl.appendChild(recordsDiv);
+                }
+
+                if (!found) {
+                    noRecordsEl.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error("Errore nel caricamento dei record di volume per gruppo:", error);
+                recordsListEl.innerHTML = '<p class="text-red-400">Errore nel caricamento dei record.</p>';
+            } finally {
+                hideLoader();
+            }
+        };
+
+        // Modifica la funzione handleAuthState così:
+        // (Duplicate declaration removed. The function is already declared above.)
 
         const loadHistory = async () => {
             if (!userId) {
@@ -564,30 +857,54 @@
                 const sessionsCollectionRef = collection(db, sessionsCollectionPath(userId));
                 const q = query(sessionsCollectionRef, orderBy('timestamp', 'desc'));
                 
-                historyUnsubscribe = onSnapshot(q, (querySnapshot) => {
-                     const sessions = [];
-                     querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        if (data.timestamp) { 
-                            sessions.push({ id: doc.id, ...data });
-                        }
+                historyUnsubscribe = onSnapshot(q, async (querySnapshot) => {
+                    const sessionPromises = querySnapshot.docs.map(async (sessionDoc) => {
+                        const sessionData = sessionDoc.data();
+                        if (!sessionData.timestamp) return null;
+
+                        const exercisesQuery = query(collection(db, exercisesCollectionPath(userId, sessionDoc.id)));
+                        const exercisesSnapshot = await getDocs(exercisesQuery);
+                        
+                        const muscleGroups = new Set();
+                        exercisesSnapshot.forEach(exerciseDoc => {
+                            const muscleGroup = exerciseDoc.data().muscleGroup;
+                            if (muscleGroup) {
+                                muscleGroups.add(muscleGroup);
+                            }
+                        });
+
+                        return {
+                            id: sessionDoc.id,
+                            timestamp: sessionData.timestamp,
+                            muscleGroups: Array.from(muscleGroups).sort()
+                        };
                     });
+
+                    const sessionsWithDetails = (await Promise.all(sessionPromises)).filter(s => s !== null);
 
                     sessionHistoryEl.innerHTML = '';
                     
-                    if (sessions.length === 0) {
+                    if (sessionsWithDetails.length === 0) {
                         noHistoryEl.classList.remove('hidden');
                     } else {
                         noHistoryEl.classList.add('hidden');
-                        sessions.forEach(session => {
+                        sessionsWithDetails.forEach(session => {
                             const sessionItem = document.createElement('div');
                             sessionItem.classList.add('bg-gray-700', 'p-4', 'rounded-lg', 'shadow-md', 'cursor-pointer', 'flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'space-y-2', 'sm:space-y-0', 'hover:bg-gray-600', 'transition-colors');
                             sessionItem.dataset.id = session.id;
                             const formattedDate = new Date(session.timestamp.seconds * 1000).toLocaleString();
+                            
+                            const muscleGroupsHtml = session.muscleGroups.length > 0 
+                                ? `<div class="flex flex-wrap gap-2 mt-2 sm:mt-0">
+                                    ${session.muscleGroups.map(group => `<span class="bg-red-500/50 text-red-200 text-xs font-semibold px-2.5 py-0.5 rounded-full">${group}</span>`).join('')}
+                                   </div>`
+                                : '';
+
                             sessionItem.innerHTML = `
-                                <div>
+                                <div class="flex-grow">
                                     <h3 class="text-lg font-semibold text-gray-100">Allenamento del ${formattedDate}</h3>
                                 </div>
+                                ${muscleGroupsHtml}
                             `;
                             sessionHistoryEl.appendChild(sessionItem);
                         });
@@ -595,12 +912,16 @@
                             item.addEventListener('click', handleSessionClick);
                         });
                     }
+                    hideLoader();
+                }, (error) => {
+                    console.error("Errore nello snapshot della cronologia:", error);
+                    showMessage("Errore", "Impossibile aggiornare la cronologia in tempo reale.");
+                    hideLoader();
                 });
 
             } catch (error) {
                 console.error("Errore nel caricamento della cronologia:", error);
                 showMessage("Errore", "Impossibile caricare la cronologia degli allenamenti.");
-            } finally {
                 hideLoader();
             }
         };
@@ -748,10 +1069,18 @@
 
         workoutBackBtn.addEventListener('click', () => {
             if (currentSessionId) {
-                showMessage("Attenzione", "La sessione di allenamento è già iniziata. Se torni indietro, gli esercizi non verranno salvati.");
+                showConfirmationModal(
+                    "Conferma Uscita",
+                    "La sessione di allenamento è in corso. Se torni indietro, gli esercizi aggiunti non verranno salvati. Sei sicuro di voler uscire?",
+                    "Sì, esci",
+                    () => {
+                        currentSessionId = null;
+                        showView('home-view');
+                    }
+                );
+            } else {
+                showView('home-view');
             }
-            currentSessionId = null;
-            showView('home-view');
         });
 
 
@@ -820,7 +1149,6 @@
         hideLoader();
     }
                 });
-        
         const handleSessionClick = async (e) => {
             let sessionId = e.currentTarget.dataset.id;
             if (!sessionId) {
@@ -1034,8 +1362,6 @@
                     transaction.delete(sessionRef);
                 });
 
-                confirmModal.classList.remove('flex');
-                confirmModal.classList.add('hidden');
                 exercisesModal.classList.remove('flex');
                 exercisesModal.classList.add('hidden');
                 showMessage("Eliminato", "L'allenamento è stato eliminato con successo.");
@@ -1172,24 +1498,24 @@
             }
         });
 
-        authLoginBtn.addEventListener('click', async (e) => {
+        authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = authEmailInput.value;
             const password = authPasswordInput.value;
-             if (!email.includes('@') || !email.includes('.')) {
+            if (!email.includes('@') || !email.includes('.')) {
                 showMessage("Errore", "L'email deve essere in un formato valido.");
                 return;
             }
-             if (password.length < 6) {
+            if (password.length < 6) {
                 showMessage("Errore", "La password deve contenere almeno 6 caratteri.");
                 return;
             }
             showLoader();
             try {
-                 await signInWithEmailAndPassword(auth, email, password);
-                 showMessage("Accesso", "Accesso completato con successo!");
+                await signInWithEmailAndPassword(auth, email, password);
+                showMessage("Accesso", "Accesso completato con successo!");
             } catch (error) {
-                 console.error("Errore durante l'accesso:", error);
+                console.error("Errore durante l'accesso:", error);
                 showMessage("Errore", "Errore durante l'accesso. Controlla email e password e riprova.");
             } finally {
                 hideLoader();
@@ -1197,24 +1523,24 @@
         });
         
         deleteSessionBtn.addEventListener('click', () => {
-            sessionToDeleteId = pastSessionIdInput.value;
-            confirmModal.classList.remove('hidden');
-            confirmModal.classList.add('flex');
+            const sessionId = pastSessionIdInput.value;
+            showConfirmationModal(
+                "Conferma Eliminazione",
+                "Sei sicuro di voler eliminare questo allenamento? Questa azione non può essere annullata.",
+                "Elimina",
+                () => deleteSessionAndAllExercises(sessionId)
+            );
         });
 
         confirmDeleteBtn.addEventListener('click', () => {
-            deleteSessionAndAllExercises(sessionToDeleteId);
+            if (typeof confirmAction === 'function') {
+                confirmAction();
+            }
+            hideConfirmModal();
         });
 
-        cancelDeleteBtn.addEventListener('click', () => {
-            confirmModal.classList.remove('flex');
-            confirmModal.classList.add('hidden');
-        });
-
-        closeConfirmModalBtn.addEventListener('click', () => {
-             confirmModal.classList.remove('flex');
-            confirmModal.classList.add('hidden');
-        });
+        cancelDeleteBtn.addEventListener('click', hideConfirmModal);
+        closeConfirmModalBtn.addEventListener('click', hideConfirmModal);
 
         togglePasswordBtn.addEventListener('click', () => {
             const type = authPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -1223,16 +1549,54 @@
             eyeOffIcon.classList.toggle('hidden');
         });
 
+        const recordsViewEl = document.getElementById('records-view');
+        const recordsBackBtn = document.getElementById('records-back-btn');
+        const recordsChoiceView = document.getElementById('records-choice-view');
+        const recordsDisplayView = document.getElementById('records-display-view');
+        const recordsDisplayBackBtn = document.getElementById('records-display-back-btn');
+        const recordsDisplayTitle = document.getElementById('records-display-title');
+        const recordsMaxWeightBtn = document.getElementById('records-max-weight-btn');
+        const recordsTotalVolumeExerciseBtn = document.getElementById('records-total-volume-exercise-btn');
+        const recordsTotalVolumeMuscleGroupBtn = document.getElementById('records-total-volume-muscle-group-btn');
+
+        homeRecordsBtn.addEventListener('click', () => {
+            showView('records-view');
+            recordsChoiceView.classList.remove('hidden');
+            recordsDisplayView.classList.add('hidden');
+        });
+
+        recordsBackBtn.addEventListener('click', () => {
+            showView('home-view');
+        });
+
+        recordsDisplayBackBtn.addEventListener('click', () => {
+            recordsDisplayView.classList.add('hidden');
+            recordsChoiceView.classList.remove('hidden');
+        });
+
+        recordsMaxWeightBtn.addEventListener('click', () => {
+            recordsChoiceView.classList.add('hidden');
+            recordsDisplayView.classList.remove('hidden');
+            recordsDisplayTitle.textContent = 'Massimale per singola serie';
+            loadMaxWeightRecords();
+        });
+
+        recordsTotalVolumeExerciseBtn.addEventListener('click', () => {
+            recordsChoiceView.classList.add('hidden');
+            recordsDisplayView.classList.remove('hidden');
+            recordsDisplayTitle.textContent = 'Volume Totale per Esercizio';
+            loadTotalVolumeExerciseRecords();
+        });
+
+        recordsTotalVolumeMuscleGroupBtn.addEventListener('click', () => {
+            recordsChoiceView.classList.add('hidden');
+            recordsDisplayView.classList.remove('hidden');
+            recordsDisplayTitle.textContent = 'Volume Totale per Gruppo Muscolare';
+            loadTotalVolumeMuscleGroupRecords();
+        });
     </script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
 </body>
 </html>
-
-
-
-
-
-
-
