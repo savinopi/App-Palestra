@@ -8,8 +8,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/savinopi/App-Palestra/main/square_icon.png">
 	<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/savinopi/App-Palestra/main/Icon_png_crop.png">
+    <!-- Preload immagini critiche -->
+    <link rel="preload" as="image" href="https://raw.githubusercontent.com/savinopi/App-Palestra/main/Icon_png_crop.png">
+    <link rel="preload" as="image" href="https://raw.githubusercontent.com/savinopi/App-Palestra/main/Background.jpg?raw=true">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -432,6 +436,10 @@
             <div id="records-choice-view">
                 <p class="text-center text-gray-400 mb-6">Scegli la categoria di record che vuoi visualizzare.</p>
                 <div class="space-y-4">
+                    <button id="records-progress-charts-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-5 w-5"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
+                        Grafici Progressi per Esercizio
+                    </button>
                     <button id="records-max-weight-btn" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-95">
                         Massimale per singola serie
                     </button>
@@ -451,6 +459,35 @@
                 <div id="records-list" class="space-y-6"></div>
                 <div id="no-records" class="hidden text-center text-gray-500 mt-4">Nessun record trovato.</div>
             </div>
+
+            <!-- Vista grafici progressi -->
+            <div id="records-charts-view" class="hidden">
+                <button id="records-charts-back-btn" class="mb-4 text-gray-400 hover:text-gray-200 transition-colors">&larr; Torna alla scelta</button>
+                <h3 class="text-xl font-semibold mb-4 text-purple-400 text-center">Seleziona un Esercizio</h3>
+                <div id="exercise-selector" class="mb-6">
+                    <select id="exercise-chart-select" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-100 text-lg">
+                        <option value="">Caricamento...</option>
+                    </select>
+                </div>
+                <div id="chart-container" class="hidden bg-gray-700 p-6 rounded-xl shadow-lg">
+                    <canvas id="progress-chart"></canvas>
+                </div>
+                <div id="chart-stats" class="hidden mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-gray-700 p-4 rounded-lg text-center">
+                        <p class="text-gray-400 text-sm">Allenamenti Totali</p>
+                        <p id="stat-total-workouts" class="text-2xl font-bold text-purple-400">0</p>
+                    </div>
+                    <div class="bg-gray-700 p-4 rounded-lg text-center">
+                        <p class="text-gray-400 text-sm">Miglioramento Volume</p>
+                        <p id="stat-volume-improvement" class="text-2xl font-bold text-green-400">+0%</p>
+                    </div>
+                    <div class="bg-gray-700 p-4 rounded-lg text-center">
+                        <p class="text-gray-400 text-sm">Record Massimale</p>
+                        <p id="stat-max-weight" class="text-2xl font-bold text-yellow-400">0 kg</p>
+                    </div>
+                </div>
+                <div id="no-chart-data" class="hidden text-center text-gray-500 mt-4">Seleziona un esercizio per visualizzare i progressi.</div>
+            </div>
         </div>
     </div>
 
@@ -458,9 +495,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, limit, serverTimestamp, setDoc, doc, deleteDoc, updateDoc, getDoc, runTransaction, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        setLogLevel('debug');
+        // setLogLevel('debug'); // Rimosso per performance
 
         const loader = document.getElementById('loader');
         const showLoader = () => loader.classList.remove('hidden');
@@ -511,6 +547,16 @@
         const recordsTotalVolumeMuscleGroupBtn = document.getElementById('records-total-volume-muscle-group-btn');
         const recordsListEl = document.getElementById('records-list');
         const noRecordsEl = document.getElementById('no-records');
+
+        const recordsProgressChartsBtn = document.getElementById('records-progress-charts-btn');
+        const recordsChartsView = document.getElementById('records-charts-view');
+        const recordsChartsBackBtn = document.getElementById('records-charts-back-btn');
+        const exerciseChartSelect = document.getElementById('exercise-chart-select');
+        const chartContainer = document.getElementById('chart-container');
+        const chartStatsEl = document.getElementById('chart-stats');
+        const noChartDataEl = document.getElementById('no-chart-data');
+        
+        let progressChart = null;
 
         const newPastWorkoutView = document.getElementById('new-past-workout-view');
         const addPastSessionBtn = document.getElementById('add-past-session-btn');
@@ -661,7 +707,7 @@
         const updateSessionMuscleGroupsInTransaction = async (sessionId) => {
             if (!sessionId || !userId) return;
             
-            await runTransaction(db, async (transaction) => {
+            try {
                 const sessionRef = doc(db, sessionsCollectionPath(userId), sessionId);
                 const exercisesSnapshot = await getDocs(query(collection(db, exercisesCollectionPath(userId, sessionId))));
                 
@@ -673,11 +719,11 @@
                     }
                 });
                 
-                const sessionDoc = await transaction.get(sessionRef);
-                if (sessionDoc.exists()) {
-                    transaction.update(sessionRef, { muscleGroups: Array.from(muscleGroups) });
-                }
-            });
+                // Aggiorna senza transazione per velocità
+                await updateDoc(sessionRef, { muscleGroups: Array.from(muscleGroups) });
+            } catch (error) {
+                console.error("Errore nell'aggiornare i gruppi muscolari:", error);
+            }
         };
 
         if (Object.keys(firebaseConfig).length > 0) {
@@ -706,7 +752,7 @@
                     authStatusEl.textContent = `Ciao ${username}`;
                     homeRecordsBtn.classList.remove('hidden');
                 }
-                await fetchRecentExercises(); 
+                // Non caricare gli esercizi recenti qui, ma solo quando servono
                 showView('home-view');
             } else {
                 if (historyUnsubscribe) {
@@ -723,23 +769,27 @@
         // Carica i record solo per utenti autenticati (non anonimi)
 
         const getAllExercisesFromHistory = async () => {
-            if (!userId) return [];
+            if (!userId || !db) return [];
             let allExercises = [];
-            const sessionsQuery = query(collection(db, sessionsCollectionPath(userId)), orderBy('timestamp', 'desc'));
-            const sessionsSnapshot = await getDocs(sessionsQuery);
+            try {
+                const sessionsQuery = query(collection(db, sessionsCollectionPath(userId)), orderBy('timestamp', 'desc'));
+                const sessionsSnapshot = await getDocs(sessionsQuery);
 
-            for (const sessionDoc of sessionsSnapshot.docs) {
-                const sessionDate = new Date(sessionDoc.data().timestamp.seconds * 1000);
-                const exercisesQuery = query(collection(db, exercisesCollectionPath(userId, sessionDoc.id)));
-                const exercisesSnapshot = await getDocs(exercisesQuery);
+                for (const sessionDoc of sessionsSnapshot.docs) {
+                    const sessionDate = new Date(sessionDoc.data().timestamp.seconds * 1000);
+                    const exercisesQuery = query(collection(db, exercisesCollectionPath(userId, sessionDoc.id)));
+                    const exercisesSnapshot = await getDocs(exercisesQuery);
 
-                exercisesSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    allExercises.push({
-                        ...data,
-                        date: sessionDate.toLocaleDateString('it-IT'),
+                    exercisesSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        allExercises.push({
+                            ...data,
+                            date: sessionDate.toLocaleDateString('it-IT'),
+                        });
                     });
-                });
+                }
+            } catch (error) {
+                console.error("Errore nel recuperare tutti gli esercizi:", error);
             }
             return allExercises;
         };
@@ -882,6 +932,11 @@
         };
 
         const loadTotalVolumeMuscleGroupRecords = async () => {
+            if (!userId || !db) {
+                noRecordsEl.classList.remove('hidden');
+                return;
+            }
+            
             showLoader();
             recordsListEl.innerHTML = '';
             noRecordsEl.classList.add('hidden');
@@ -949,6 +1004,201 @@
             }
         };
 
+        const loadProgressCharts = async () => {
+            if (!userId || !db) {
+                noChartDataEl.classList.remove('hidden');
+                return;
+            }
+            
+            showLoader();
+            
+            try {
+                const allExercises = await getAllExercisesFromHistory();
+                
+                // Raggruppa esercizi per nome
+                const exerciseGroups = {};
+                allExercises.forEach(ex => {
+                    if (!exerciseGroups[ex.exercise]) {
+                        exerciseGroups[ex.exercise] = [];
+                    }
+                    exerciseGroups[ex.exercise].push(ex);
+                });
+                
+                // Popola il dropdown
+                exerciseChartSelect.innerHTML = '<option value="">Seleziona un esercizio...</option>';
+                Object.keys(exerciseGroups).sort().forEach(exName => {
+                    const option = document.createElement('option');
+                    option.value = exName;
+                    option.textContent = `${exName} (${exerciseGroups[exName].length} allenamenti)`;
+                    exerciseChartSelect.appendChild(option);
+                });
+                
+                noChartDataEl.classList.remove('hidden');
+                
+            } catch (error) {
+                console.error("Errore nel caricamento dei dati per i grafici:", error);
+            } finally {
+                hideLoader();
+            }
+        };
+
+        const createProgressChart = async (exerciseName) => {
+            if (!exerciseName) return;
+            
+            showLoader();
+            
+            try {
+                const allExercises = await getAllExercisesFromHistory();
+                const exerciseData = allExercises.filter(ex => ex.exercise === exerciseName);
+                
+                if (exerciseData.length === 0) {
+                    chartContainer.classList.add('hidden');
+                    chartStatsEl.classList.add('hidden');
+                    noChartDataEl.classList.remove('hidden');
+                    hideLoader();
+                    return;
+                }
+                
+                // Ordina per data
+                exerciseData.sort((a, b) => new Date(a.date.split('/').reverse().join('-')) - new Date(b.date.split('/').reverse().join('-')));
+                
+                const dates = exerciseData.map(ex => ex.date);
+                const volumes = exerciseData.map(ex => ex.volume || 0);
+                const maxWeights = exerciseData.map(ex => {
+                    if (ex.sets && ex.sets.length > 0) {
+                        return Math.max(...ex.sets.map(s => s.weight || 0));
+                    }
+                    return 0;
+                });
+                
+                // Calcola statistiche
+                const totalWorkouts = exerciseData.length;
+                const volumeImprovement = volumes.length > 1 
+                    ? ((volumes[volumes.length - 1] - volumes[0]) / volumes[0] * 100).toFixed(1)
+                    : 0;
+                const maxWeight = Math.max(...maxWeights);
+                
+                document.getElementById('stat-total-workouts').textContent = totalWorkouts;
+                document.getElementById('stat-volume-improvement').textContent = `${volumeImprovement > 0 ? '+' : ''}${volumeImprovement}%`;
+                document.getElementById('stat-volume-improvement').className = `text-2xl font-bold ${volumeImprovement >= 0 ? 'text-green-400' : 'text-red-400'}`;
+                document.getElementById('stat-max-weight').textContent = `${maxWeight} kg`;
+                
+                // Distruggi il grafico precedente
+                if (progressChart) {
+                    progressChart.destroy();
+                }
+                
+                // Crea nuovo grafico
+                const ctx = document.getElementById('progress-chart').getContext('2d');
+                progressChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: 'Volume Totale (kg)',
+                                data: volumes,
+                                borderColor: 'rgb(168, 85, 247)',
+                                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                yAxisID: 'y',
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            },
+                            {
+                                label: 'Peso Massimo (kg)',
+                                data: maxWeights,
+                                borderColor: 'rgb(234, 179, 8)',
+                                backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                                yAxisID: 'y1',
+                                tension: 0.3,
+                                fill: false,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'rgb(209, 213, 219)',
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                                titleColor: 'rgb(243, 244, 246)',
+                                bodyColor: 'rgb(209, 213, 219)',
+                                borderColor: 'rgb(75, 85, 99)',
+                                borderWidth: 1
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: 'rgb(156, 163, 175)'
+                                },
+                                grid: {
+                                    color: 'rgba(75, 85, 99, 0.3)'
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                ticks: {
+                                    color: 'rgb(168, 85, 247)'
+                                },
+                                grid: {
+                                    color: 'rgba(75, 85, 99, 0.3)'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Volume (kg)',
+                                    color: 'rgb(168, 85, 247)'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                ticks: {
+                                    color: 'rgb(234, 179, 8)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Peso Max (kg)',
+                                    color: 'rgb(234, 179, 8)'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                chartContainer.classList.remove('hidden');
+                chartStatsEl.classList.remove('hidden');
+                noChartDataEl.classList.add('hidden');
+                
+            } catch (error) {
+                console.error("Errore nella creazione del grafico:", error);
+            } finally {
+                hideLoader();
+            }
+        };
+
         // --- Init & Auth Listeners ---
         if (auth) {
             showLoader();
@@ -956,7 +1206,7 @@
         }
 
         const loadHistory = async () => {
-            if (!userId) {
+            if (!userId || !db) {
                 showMessage("Errore", "Utente non autenticato. Riprova.");
                 return;
             }
@@ -1049,14 +1299,19 @@
         };
 
         const fetchRecentExercises = async () => {
-            if (!userId) return;
+            if (!userId || !db || !auth || !auth.currentUser) {
+                console.log("Fetch esercizi recenti: utente non autenticato o DB non disponibile");
+                return;
+            }
             try {
                 recentExercises = {};
-                const sessionsQuery = query(collection(db, sessionsCollectionPath(userId)), orderBy('timestamp', 'desc'), limit(10));
+                // Limita a 5 sessioni invece di 10 per velocità
+                const sessionsQuery = query(collection(db, sessionsCollectionPath(userId)), orderBy('timestamp', 'desc'), limit(5));
                 const sessionsSnapshot = await getDocs(sessionsQuery);
                 
                 for (const sessionDoc of sessionsSnapshot.docs) {
-                    const exercisesQuery = query(collection(db, exercisesCollectionPath(userId, sessionDoc.id)), orderBy('timestamp', 'desc'));
+                    // Limita anche gli esercizi per sessione
+                    const exercisesQuery = query(collection(db, exercisesCollectionPath(userId, sessionDoc.id)), limit(20));
                     const exercisesSnapshot = await getDocs(exercisesQuery);
                     
                     exercisesSnapshot.forEach(doc => {
@@ -1074,7 +1329,12 @@
                     });
                 }
             } catch (error) {
-                console.error("Errore nel recuperare gli esercizi recenti:", error);
+                // Se l'errore è di permessi, probabilmente le regole Firestore devono essere aggiornate
+                if (error.code === 'permission-denied') {
+                    console.warn("Permessi insufficienti per leggere gli esercizi. Verifica le regole Firestore.");
+                } else {
+                    console.error("Errore nel recuperare gli esercizi recenti:", error);
+                }
                 // Non mostrare un modale qui, è un'attività in background.
                 // L'app può continuare a funzionare anche senza gli esercizi recenti.
             }
@@ -1243,7 +1503,8 @@
             handleExerciseSelection(pastExerciseSelect, pastNewExerciseInput, pastMuscleGroupInput.value, pastWeightInput, pastRepsInput, pastSetsList, pastVolumeInput, pastSets);
         });
 
-        homeStartBtn.addEventListener('click', () => {
+        homeStartBtn.addEventListener('click', async () => {
+            // Mostra subito la view senza aspettare
             currentSessionId = null;
             showView('workout-view');
             sessionInfoEl.textContent = `Iniziato: ${new Date().toLocaleString()}`;
@@ -1253,20 +1514,20 @@
             volumeInput.value = '';
             currentWorkoutExercisesListContainer.classList.add('hidden');
             currentWorkoutExercisesList.innerHTML = '<p class="text-center text-gray-400">Nessun esercizio ancora aggiunto.</p>';
+            // Reset del testo del bottone
+            workoutBackBtn.innerHTML = '&larr; Torna alla Home';
+            
+            // Carica gli esercizi recenti in background senza bloccare
+            fetchRecentExercises().catch(err => console.error("Errore caricamento esercizi in background:", err));
         });
 
         workoutBackBtn.addEventListener('click', () => {
             if (currentSessionId) {
-                showConfirmationModal(
-                    "Conferma Uscita",
-                    "La sessione di allenamento è in corso. Se torni indietro, gli esercizi aggiunti non verranno salvati. Sei sicuro di voler uscire?",
-                    "Sì, esci",
-                    () => {
-                        stopTimer();
-                        currentSessionId = null;
-                        showView('home-view');
-                    }
-                );
+                // Se c'è una sessione attiva, salva e torna alla home
+                stopTimer();
+                currentSessionId = null;
+                showView('home-view');
+                showMessage("Salvato", "Allenamento salvato con successo!");
             } else {
                 stopTimer();
                 showView('home-view');
@@ -1345,27 +1606,20 @@
     }
     const muscleGroup = muscleGroupSelect.value;
     const notes = notesInput.value.trim();
-    const totalVolume = currentSets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
+    
+    // Copia l'array di serie prima di resettare il form
+    const setsToSave = currentSets.map(set => ({ weight: set.weight, reps: set.reps }));
+    const totalVolume = setsToSave.reduce((sum, set) => sum + (set.weight * set.reps), 0);
 
-    // PATCH: log di debug!
-    console.log("[submit] currentSets:", currentSets);
-    console.log("[submit] newExercise:", {
-        exercise: exerciseName,
-        muscleGroup,
-        sets: currentSets,
-        volume: totalVolume,
-        notes
-    });
-
-    if (!exerciseName || !muscleGroup || currentSets.length === 0) {
-        showMessage("Errore", "Per favor, compila tutti i campi obbligatori e aggiungi almeno una serie.");
+    if (!exerciseName || !muscleGroup || setsToSave.length === 0) {
+        showMessage("Errore", "Per favore, compila tutti i campi obbligatori e aggiungi almeno una serie.");
         return;
     }
 
     const newExercise = {
         exercise: exerciseName,
         muscleGroup,
-        sets: currentSets,
+        sets: setsToSave,
         volume: totalVolume,
         notes,
         timestamp: serverTimestamp(),
@@ -1386,8 +1640,19 @@
 
         await renderExercisesForSession(currentSessionId, currentWorkoutExercisesList);
 
-        // PATCH: reset solo i campi utili!
-        newExerciseInput.value = '';
+        // Cambia il testo del bottone quando c'è una sessione attiva
+        workoutBackBtn.innerHTML = '&larr; Salva e torna alla Home';
+
+        // Reset il form mantenendo il gruppo muscolare selezionato
+        const selectedMuscleGroup = muscleGroupSelect.value;
+        exerciseForm.reset();
+        muscleGroupSelect.value = selectedMuscleGroup;
+        
+        // Ripopola il dropdown degli esercizi
+        if (selectedMuscleGroup) {
+            populateExerciseDropdown(exerciseSelect, newExerciseInput, selectedMuscleGroup);
+        }
+        
         notesInput.value = '';
         weightInput.value = '';
         repsInput.value = '';
@@ -1395,7 +1660,8 @@
         currentSets = [];
         setsList.innerHTML = '';
 
-        await fetchRecentExercises();
+        // Non ricaricare gli esercizi recenti ogni volta, rallenta troppo
+        // await fetchRecentExercises();
         showMessage("Successo", "Esercizio aggiunto con successo!");
     } catch (error) {
         console.error("Errore nell'aggiungere l'esercizio:", error);
@@ -1592,24 +1858,8 @@
 
                 await updateDoc(doc(db, exercisesCollectionPath(userId, sessionId), exerciseId), updatedExercise);
 
-                // Transactionally update muscle groups for the session
-                await runTransaction(db, async (transaction) => {
-                    const sessionRef = doc(db, sessionsCollectionPath(userId), sessionId);
-                    const exercisesSnapshot = await getDocs(query(collection(db, exercisesCollectionPath(userId, sessionId))));
-                    
-                    const muscleGroups = new Set();
-                    exercisesSnapshot.forEach(exerciseDoc => {
-                        const muscleGroup = exerciseDoc.data().muscleGroup;
-                        if (muscleGroup) {
-                            muscleGroups.add(muscleGroup);
-                        }
-                    });
-                    
-                    const sessionDoc = await transaction.get(sessionRef);
-                    if (sessionDoc.exists()) {
-                        transaction.update(sessionRef, { muscleGroups: Array.from(muscleGroups) });
-                    }
-                });
+                // Aggiorna gruppi muscolari senza transazione pesante
+                await updateSessionMuscleGroupsInTransaction(sessionId);
 
                 editModal.classList.remove('flex');
                 editModal.classList.add('hidden');
@@ -1637,24 +1887,8 @@
                     try {
                         await deleteDoc(doc(db, exercisesCollectionPath(userId, sessionId), exerciseId));
                         
-                        // Transactionally update muscle groups for the session after deletion
-                        await runTransaction(db, async (transaction) => {
-                            const sessionRef = doc(db, sessionsCollectionPath(userId), sessionId);
-                            const exercisesSnapshot = await getDocs(query(collection(db, exercisesCollectionPath(userId, sessionId))));
-
-                            const muscleGroups = new Set();
-                            exercisesSnapshot.forEach(exerciseDoc => {
-                                const muscleGroup = exerciseDoc.data().muscleGroup;
-                                if (muscleGroup) {
-                                    muscleGroups.add(muscleGroup);
-                                }
-                            });
-
-                            const sessionDoc = await transaction.get(sessionRef);
-                            if (sessionDoc.exists()) {
-                                transaction.update(sessionRef, { muscleGroups: Array.from(muscleGroups) });
-                            }
-                        });
+                        // Aggiorna gruppi muscolari senza transazione pesante
+                        await updateSessionMuscleGroupsInTransaction(sessionId);
 
                         await renderExercisesForSession(sessionId, exercisesListEl, { showEditDelete: true });
                         showMessage("Eliminato", "Esercizio eliminato con successo.");
@@ -1933,9 +2167,35 @@
             recordsDisplayTitle.textContent = 'Volume Totale per Gruppo Muscolare';
             loadTotalVolumeMuscleGroupRecords();
         });
+
+        recordsProgressChartsBtn.addEventListener('click', () => {
+            recordsChoiceView.classList.add('hidden');
+            recordsChartsView.classList.remove('hidden');
+            recordsDisplayView.classList.add('hidden');
+            loadProgressCharts();
+        });
+
+        recordsChartsBackBtn.addEventListener('click', () => {
+            recordsChartsView.classList.add('hidden');
+            recordsChoiceView.classList.remove('hidden');
+            chartContainer.classList.add('hidden');
+            chartStatsEl.classList.add('hidden');
+            if (progressChart) {
+                progressChart.destroy();
+                progressChart = null;
+            }
+        });
+
+        exerciseChartSelect.addEventListener('change', (e) => {
+            const exerciseName = e.target.value;
+            if (exerciseName) {
+                createProgressChart(exerciseName);
+            } else {
+                chartContainer.classList.add('hidden');
+                chartStatsEl.classList.add('hidden');
+                noChartDataEl.classList.remove('hidden');
+            }
+        });
     </script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
 </body>
 </html>
